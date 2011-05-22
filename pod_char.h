@@ -25,7 +25,7 @@
 // character is more than 1 byte then multiple bytes are converted to a single
 // 32-bit value.
 
-typedef uint32 pod_char_t;
+typedef unsigned long pod_char_t;
 
 
 

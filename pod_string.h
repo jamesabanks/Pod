@@ -1,6 +1,7 @@
 #ifndef INCLUDE_POD_STRING_H
 #define INCLUDE_POD_STRING_H
 
+#include <stddef.h>
 #include "pod_object.h"
 #include "pod_char.h"
 
@@ -57,7 +58,7 @@ extern void pod_destroy_string(void *string);
 
 extern int pod_compare_strings(struct pod_string *a, struct pod_string *b);
 extern int pod_compare_string_to_cstring(struct pod_string *ps, char *cs);
-extern void pod_copy_chars(pod_char_t *to, pod_char_t *from, int n);
+extern void pod_copy_chars(pod_char_t *to, pod_char_t *from, size_t n);
 extern void pod_copy_string(struct pod_string *to, struct pod_string *from);
 extern void pod_copy_string_from_cstring(struct pod_string *to, char *from);
 extern void pod_copy_string_to_cstring(char *to, struct pod_string *from);

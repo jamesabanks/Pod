@@ -25,7 +25,7 @@ extern const int POD_OBJECT_TYPE;
     // free the struct's memory.  The call is something like obj->destroy(obj).
     // C doesn't have anything like a "this" or a "self" variable.
 
-typedef void pod_destroy(void *)
+typedef void pod_destroy(void *);
 
 
     // And finally, the struct pod_object definition:

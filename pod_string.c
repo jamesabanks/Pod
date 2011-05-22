@@ -1,4 +1,6 @@
-#include <pod_string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include "pod_string.h"
 
 
 
@@ -19,13 +21,14 @@ const int POD_STRING_TYPE = 0x0b0001;
 
 struct pod_string *pod_construct_string(int *error, size_t size, int flags)
 {
-    struct pod_string *string;
+    int i;
     size_t length;
+    struct pod_string *string;
 
     length = sizeof(struct pod_string) + (size * sizeof(pod_char_t));
     string = (struct pod_string *) malloc(length);
     if (string == NULL) {
-        error = errno;
+        *error = errno;
     } else {
         error = 0;
         string->o.type = POD_STRING_TYPE;
@@ -34,9 +37,11 @@ struct pod_string *pod_construct_string(int *error, size_t size, int flags)
         string->o.destroy = &pod_destroy_string;
         string->size = size;
         string->used = 0;
-        string->flags = f;
-        if (f & POD_INIT_ZERO) {
-            memset(string->buffer, 0, size * sizeof(pod_char_t));
+        string->flags = flags;
+        if (flags & POD_INIT_ZERO) {
+            for (i = 0; i < size; i++) {
+                string->buffer[i] = 0;
+            }
         }
     }
 
@@ -49,13 +54,18 @@ struct pod_string *pod_construct_string(int *error, size_t size, int flags)
     //
     // Zero out the entire structure if desired.  Then free the memory.
 
-void pod_destroy_string(void *string)
+void pod_destroy_string(void *function)
 {
+    int i;
+    struct pod_string *string;
     size_t size;
 
+    string = (struct pod_string *) function;
     if (string->flags & POD_DESTROY_ZERO) {    
         size = sizeof(struct pod_string) + (string->size * sizeof(pod_char_t));
-        memset(string, 0, size);
+        for (i = 0; i < size; i++) {
+            ((char *) string)[i] = 0;
+        }
     }
     free(string);
 }
