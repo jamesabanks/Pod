@@ -3,8 +3,10 @@ objects = pod_object.o pod_string.o
 
 
 
+.PHONY:	all
 all:		libpod.a
 
+.PHONY:	debug
 debug:		CFLAGS := -g
 debug:		$(objects) libpod.a
 
