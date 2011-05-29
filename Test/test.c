@@ -8,6 +8,21 @@
 
 
 
+// Testing infrastructures come down to basicly the same thing.  A
+// heirachically organized bunch of routines.  And that isn't magical or
+// complicated.  So I'll try my own.
+//
+// I kinda wonder if an option to specify an indent string would be useful.
+// But that would mean an option infrastructure and I just shudder at adding
+// that much stuff for any reason.
+//
+// And putting time stamps in.  And so on...
+//
+// It might even help to move test_files into its own file (or make it a text
+// file which is read into test).
+
+
+
 // test_files is a null terminated list of executables (binaries or scripts) to
 // be run if no parameter (a specific binary or script) is specified.  An
 // executable can run one test or many tests.
