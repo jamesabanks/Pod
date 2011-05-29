@@ -14,11 +14,12 @@
 //
 // I kinda wonder if an option to specify an indent string would be useful.
 // But that would mean an option infrastructure and I just shudder at adding
-// that much stuff for any reason.
+// that much stuff for any reason.  Or I could roll my own.  Yet another
+// project.  Not now.
 //
 // And putting time stamps in.  And so on...
 //
-// It might even help to move test_files into its own file (or make it a text
+// It might make sense to move test_files into its own file (or make it a text
 // file which is read into test).
 
 
@@ -48,6 +49,7 @@ static int run_test(char *name)
     pid_t pid;
     int retval;
     int status;
+    char *estr;
     int temp;
     
     retval = 0;
@@ -56,7 +58,8 @@ static int run_test(char *name)
     if (pid == 0) {
         argv[0] = name;
         execve(name, argv, env);
-        fprintf(stdout, "    Execve failure: %s (%d)\n", strerror(errno), errno);
+        estr = strerror(errno);
+        fprintf(stdout, "    Execve failure: %s (%d)\n", estr, errno);
         exit(errno);
     } else {
         // TODO Handling the results of wait is not complete.  Make it
