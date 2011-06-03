@@ -20,7 +20,8 @@
 // And putting time stamps in.  And so on...
 //
 // It might make sense to move test_files into its own file (or make it a text
-// file which is read into test).
+// file which is read into test).  It would make sense to accept an arbitrary
+// number of files on the command line. For example, test test_a test_b ...
 
 
 
@@ -29,7 +30,7 @@
 // executable can run one test or many tests.
 
 char *test_files[] = {
-    "test1",
+    "test_pod_char",
     NULL
 };
 
@@ -71,13 +72,13 @@ static int run_test(char *name)
         }
     }
     if (status == 0) {
-        fprintf(stdout, "Test '%s' SUCCESS\n", name);
+        fprintf(stdout, "    SUCCESS\n");
     } else {
         if (WIFEXITED(status)) {
             temp = WEXITSTATUS(status);
-            fprintf(stdout, "Test '%s' FAILED, error %d\n", name, temp);
+            fprintf(stdout, "    FAILED\n");
         } else {
-            fprintf(stdout, "Test '%s' FAILED (and/or didn't exit)\n", name);
+            fprintf(stdout, "    FAILED (and/or didn't exit)\n");
         }
     }
 
