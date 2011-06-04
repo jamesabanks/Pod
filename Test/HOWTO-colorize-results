@@ -1,0 +1,17 @@
+1. Use vim
+2. define LESS in makefile to use vim's less.sh
+   (I'm using the less.sh shipped with MacVim)
+3. Put the following in ~/.vim/syntax/results.vim:
+      syntax match Success 'SUCCESS'
+      highlight Success ctermfg=green guifg=#00ff00
+      syntax match Failure 'FAILED'
+      highlight Failure ctermfg=red guifg=#ff0000      
+4. Put the following in ~/.vim/ftdetect/results.vim
+      au! BufRead,BufNewFile *.results         setfiletype results
+      
+NOTES:
+    1. The guifg and guibg are there just because they're there.  I haven't
+       used them.
+    2. The 'vim' command actually being executed by less.sh is vim 7.2 as
+       shipped with Apple's Snow Leopard (OS X 10.6.7).
+    3. Define LESS to be 'less' to return to a black and white version.
