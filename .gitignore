@@ -1,2 +1,5 @@
 *.[oa]
 *.swp
+test
+test_pod_char
+test_pod_object
