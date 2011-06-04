@@ -17,7 +17,7 @@ int main(int argc, char *argv)
         error_count++;
         fprintf(stdout, "    POD_OBJECT_TYPE is not the expected value.\n");
         fprintf(stdout,
-                "      (expected 0xb0000, got 0x%x.)\n",
+                "        (expected 0xb0000, got 0x%x.)\n",
                 POD_OBJECT_TYPE);
     }
 

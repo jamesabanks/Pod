@@ -56,12 +56,14 @@ static int run_test(char *name)
     
     retval = 0;
     fprintf(stdout, "Running test '%s'\n", name);
+    fflush(stdout);
     pid = fork();
     if (pid == 0) {
         argv[0] = name;
         execve(name, argv, env);
         estr = strerror(errno);
         fprintf(stdout, "    Execve failure: %s (%d)\n", estr, errno);
+        fflush(stdout);
         exit(errno);
     } else {
         // TODO Handling the results of wait is not complete.  Make it
@@ -82,6 +84,7 @@ static int run_test(char *name)
             fprintf(stdout, "    FAILED (and/or didn't exit)\n");
         }
     }
+    fflush(stdout);
 
     return retval;
 }
