@@ -1,7 +1,7 @@
 CFLAGS = -O2
-LDFLAGS = -L.. -lpod
+LDFLAGS = -L../../ElectricFence-2.2.0 -L.. -lefence -lpod
 LESS = /Users/james/Applications/MacVim.app/Contents/Resources/vim/runtime/macros/less.sh
-tests = test_pod_char test_pod_object
+tests = test_pod_char test_pod_object test_pod_string
 
 
 

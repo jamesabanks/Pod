@@ -32,6 +32,7 @@
 char *test_files[] = {
     "test_pod_char",
     "test_pod_object",
+    "test_pod_string",
     NULL
 };
 
