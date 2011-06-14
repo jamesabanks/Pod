@@ -30,7 +30,7 @@ struct pod_string *pod_construct_string(int *error, size_t size, int flags)
     if (string == NULL) {
         *error = errno;
     } else {
-        error = 0;
+        *error = 0;
         string->o.type = POD_STRING_TYPE;
         string->o.next = NULL;
         string->o.previous = NULL;
