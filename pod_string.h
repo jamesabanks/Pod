@@ -16,6 +16,11 @@
 // I stuck a value member in every string because I don't see the point of
 // another struct (that would be the key-value pair).
 
+// TODO The size element of the string is of type size_t, but the size of a
+// string is really in units of sizeof(pod_char_t).  On OS X x86, size_t is 32
+// bits.  (probably, I haven't verified this) intended for addresses at a byte
+// level.  Is size_t good to use?
+
 
     // Type value is POD_OBJECT_TYPE + 1
 
