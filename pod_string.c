@@ -11,7 +11,7 @@ const int POD_STRING_TYPE = 0x0b0001;
 
 
 
-    // pod_construct_string
+    // pod_create_string
     //
     // Allocate memory for a new pod_string.  Initialize the members.
     //
@@ -19,7 +19,7 @@ const int POD_STRING_TYPE = 0x0b0001;
     //    The address of the new pod_string
     //    NULL if memory can't be allocated (with errno stored in error)
 
-struct pod_string *pod_construct_string(int *error, size_t size, int flags)
+struct pod_string *pod_create_string(int *error, size_t size, int flags)
 {
     int i;
     size_t length;
