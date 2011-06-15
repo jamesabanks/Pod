@@ -55,7 +55,7 @@ struct pod_string {
 
     // Constructor and destructor
 
-extern struct pod_string *pod_construct_string(int *error, size_t size, int f);
+extern struct pod_string *pod_create_string(int *error, size_t size, int f);
 extern void pod_destroy_string(void *string);
 
 
