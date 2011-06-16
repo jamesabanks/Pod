@@ -182,6 +182,11 @@ void pod_copy_chars(pod_char_t *to, pod_char_t *from, size_t n)
 
 
 
+    // pod_copy_string
+    // 
+    // Copy a pod_string to a pod_string.  The pod_strings can be different
+    // useds or sizes.
+
 void pod_copy_string(struct pod_string *to, struct pod_string *from)
 {
     size_t amount;
@@ -206,6 +211,12 @@ void pod_copy_string(struct pod_string *to, struct pod_string *from)
 }
 
 
+
+    // pod_copy_string_from_cstring
+    //
+    // Copy to a pod_string from an array of char.  This operation is
+    // self-limiting because it won't copy more than to->size characters.
+    // Which might be more than desired, but it won't cause a runaway loop.
 
 void pod_copy_string_from_cstring(struct pod_string *to, char *from)
 {
@@ -233,6 +244,14 @@ void pod_copy_string_from_cstring(struct pod_string *to, char *from)
 
 
 
+    // pod_copy_string_to_cstring
+    //
+    // Copy from a pod_string to a provided array of char.  This mean that I'm
+    // assuming the array of char has ALREADY been allocated either on the
+    // stack or the heap, and it is NOT this function's responsibility.  A
+    // trailing '\0' is appended.  So the target should have room for the
+    // string's contents (string->used) plus 1 (the '\0').
+
 void pod_copy_string_to_cstring(char *to, struct pod_string *from)
 {
     size_t i;
@@ -240,6 +259,6 @@ void pod_copy_string_to_cstring(char *to, struct pod_string *from)
     for (i = 0; i < from->used; i++) {
         to[i] = (char) from->buffer[i];
     }
-    to[i] = 0;
+    to[i] = '\0';
 }
 
