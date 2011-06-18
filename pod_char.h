@@ -2,6 +2,7 @@
 #define INCLUDE_POD_CHAR_H
 
 #include <stdint.h> /* for uint32 */
+#include <stddef.h>
 
 
 
@@ -25,7 +26,12 @@
 // character is more than 1 byte then multiple bytes are converted to a single
 // 32-bit value.
 
-typedef unsigned long pod_char_t;
+typedef uint32_t pod_char_t;
+
+
+    // pod_char_t related functions
+
+extern void pod_char_copy(pod_char_t *to, pod_char_t *from, size_t n);
 
 
 

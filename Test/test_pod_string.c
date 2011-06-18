@@ -74,7 +74,7 @@ int test_create_and_destroy(void)
     printf("    test_create_and_destroy\n");
     error_count = 0;
         // STRING_SIZE elements, no flags
-    string = pod_create_string(&error, STRING_SIZE, 0);
+    string = pod_string_create(&error, STRING_SIZE, 0);
     if (error != 0) {
         return test_create_string_error("        ", string);
     }
@@ -91,7 +91,7 @@ int test_create_and_destroy(void)
         error_count++;
         printf("    String's o.previous value is not NULL.\n");
     }
-    if (string->o.destroy != pod_destroy_string) {
+    if (string->o.destroy != pod_string_destroy) {
         error_count++;
         printf("    String's o.destroy is not set to pod_destroy_string.\n");
     }
@@ -147,14 +147,14 @@ int test_copy_string(void)
     for (i = 0; i < 100; i++) {
         buffer[i] = 0xa5;  // a5 is 10100101
     }
-    a_string = pod_create_string(&error, size, 0);
+    a_string = pod_string_create(&error, size, 0);
     if (error != 0) {
         return test_create_string_error("        (1) ", a_string);
     }
 
     fflush(stdout);
-    pod_copy_string_from_cstring(a_string, test_string);
-    pod_copy_string_to_cstring(buffer, a_string);
+    pod_string_copy_from_cstring(a_string, test_string);
+    pod_string_copy_to_cstring(buffer, a_string);
     buffer[99] = '\0';
     if (strncmp(test_string, buffer, size) != 0) {
         error_count++;
@@ -163,14 +163,14 @@ int test_copy_string(void)
     for (i = 0; i < 100; i++) {
         buffer[i] = 0xa5;  // a5 is 10100101
     }
-    b_string = pod_create_string(&error, size, 0);
+    b_string = pod_string_create(&error, size, 0);
     if (error != 0) {
         return test_create_string_error("        (2) ", b_string);
     }
 
     fflush(stdout);
-    pod_copy_string(b_string, a_string);
-    pod_copy_string_to_cstring(buffer, b_string);
+    pod_string_copy(b_string, a_string);
+    pod_string_copy_to_cstring(buffer, b_string);
     buffer[99] = '\0';
     if (strncmp(test_string, buffer, size) != 0) {
         error_count++;

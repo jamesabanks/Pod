@@ -11,7 +11,7 @@ const int POD_STRING_TYPE = 0x0b0001;
 
 
 
-    // pod_create_string
+    // pod_string_create
     //
     // Allocate memory for a new pod_string.  Initialize the members.
     //
@@ -19,7 +19,7 @@ const int POD_STRING_TYPE = 0x0b0001;
     //    The address of the new pod_string
     //    NULL if memory can't be allocated (with errno stored in error)
 
-struct pod_string *pod_create_string(int *error, size_t size, int flags)
+struct pod_string *pod_string_create(int *error, size_t size, int flags)
 {
     int i;
     size_t length;
@@ -34,7 +34,7 @@ struct pod_string *pod_create_string(int *error, size_t size, int flags)
         string->o.type = POD_STRING_TYPE;
         string->o.next = NULL;
         string->o.previous = NULL;
-        string->o.destroy = &pod_destroy_string;
+        string->o.destroy = &pod_string_destroy;
         string->size = size;
         string->used = 0;
         string->flags = flags;
@@ -50,11 +50,11 @@ struct pod_string *pod_create_string(int *error, size_t size, int flags)
 
 
 
-    // pod_destroy_string
+    // pod_string_destroy
     //
     // Zero out the entire structure if desired.  Then free the memory.
 
-void pod_destroy_string(void *function)
+void pod_string_destroy(void *function)
 {
     int i;
     struct pod_string *string;
@@ -72,7 +72,7 @@ void pod_destroy_string(void *function)
 
 
 
-    // pod_compare_strings
+    // pod_string_compare
     //
     // Compare two pod_strings, called a and b.  The "size" member of a
     // pod_string isn't used and doesn't matter (though it is the upper bound
@@ -86,7 +86,7 @@ void pod_destroy_string(void *function)
     //   -1 if a is shorter than b (and equal to b until a ends)
     //    1 if a is longer than b (and equal to b until b ends)
 
-int pod_compare_strings(struct pod_string *a, struct pod_string *b)
+int pod_string_compare(struct pod_string *a, struct pod_string *b)
 {
     size_t amount;
     size_t i;
@@ -120,7 +120,7 @@ int pod_compare_strings(struct pod_string *a, struct pod_string *b)
 
 
 
-    // pod_compare_string_to_cstring
+    // pod_string_compare_to_cstring
     //
     // Compare a pod_string (with elements of pod_char_t) to a C string (a null
     // terminated array of char).  A pod_char_t element is demoted to a
@@ -133,7 +133,7 @@ int pod_compare_strings(struct pod_string *a, struct pod_string *b)
     //   -1 if ps is shorter than cs (and equal to cs until ps ends)
     //    1 if ps is longer than cs (and equal to cs until cs ends)
 
-int pod_compare_string_to_cstring(struct pod_string *ps, char *cs)
+int pod_string_compare_to_cstring(struct pod_string *ps, char *cs)
 {
     char c;
     size_t i;
@@ -165,29 +165,12 @@ int pod_compare_string_to_cstring(struct pod_string *ps, char *cs)
 
 
 
-    // pod_copy_chars
-    //
-    // Copy data to an array of pod_char_t from another array of pod_char_t,
-    // This routine doesn't handle overlapping arrays (it's like memcpy, not
-    // memmove).
-
-void pod_copy_chars(pod_char_t *to, pod_char_t *from, size_t n)
-{
-    size_t i;
-
-    for (i = 0; i < n; i++) {
-        to[i] = from[i];
-    }
-}
-
-
-
-    // pod_copy_string
+    // pod_string_copy
     // 
     // Copy a pod_string to a pod_string.  The pod_strings can be different
     // useds or sizes.
 
-void pod_copy_string(struct pod_string *to, struct pod_string *from)
+void pod_string_copy(struct pod_string *to, struct pod_string *from)
 {
     size_t amount;
     size_t i;
@@ -212,13 +195,13 @@ void pod_copy_string(struct pod_string *to, struct pod_string *from)
 
 
 
-    // pod_copy_string_from_cstring
+    // pod_string_copy_from_cstring
     //
     // Copy to a pod_string from an array of char.  This operation is
     // self-limiting because it won't copy more than to->size characters.
     // Which might be more than desired, but it won't cause a runaway loop.
 
-void pod_copy_string_from_cstring(struct pod_string *to, char *from)
+void pod_string_copy_from_cstring(struct pod_string *to, char *from)
 {
     size_t amount;
     size_t i;
@@ -244,7 +227,7 @@ void pod_copy_string_from_cstring(struct pod_string *to, char *from)
 
 
 
-    // pod_copy_string_to_cstring
+    // pod_string_copy_to_cstring
     //
     // Copy from a pod_string to a provided array of char.  This mean that I'm
     // assuming the array of char has ALREADY been allocated either on the
@@ -252,7 +235,7 @@ void pod_copy_string_from_cstring(struct pod_string *to, char *from)
     // trailing '\0' is appended.  So the target should have room for the
     // string's contents (string->used) plus 1 (the '\0').
 
-void pod_copy_string_to_cstring(char *to, struct pod_string *from)
+void pod_string_copy_to_cstring(char *to, struct pod_string *from)
 {
     size_t i;
 
