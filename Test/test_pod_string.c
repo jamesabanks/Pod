@@ -11,6 +11,8 @@
 
 volatile int tmp;
 char *test_string = "Mary had a little lamb.";
+char *test_string2 = "Baa, baa, black sheep.";
+char *test_string3 = "Peter peter pumpkin eater.";
 
 
 
@@ -28,6 +30,7 @@ int main(int argc, char *argv)
     }
     error_count += test_create_and_destroy();
     error_count += test_copy_string();
+    error_count += test_compare_string();
 
     return error_count;
 }
@@ -54,6 +57,22 @@ int test_create_string_error(char *label, struct pod_string *string)
     }
 
     return error_count;
+}
+
+
+
+    // test_print_string
+    //
+    // Quick and dirty printing of the contents of a pod_string.  This function
+    // assumes that each character is less than 256.
+
+void test_print_string(FILE *out, struct pod_string *string)
+{
+    int i;
+
+    for (i = 0; i < string->used; i++) {
+        fputc(string->buffer[i], out);
+    }
 }
 
 
@@ -178,6 +197,106 @@ int test_copy_string(void)
     }
     b_string->o.destroy(b_string);
     a_string->o.destroy(a_string);
+
+    return error_count;
+}
+
+
+
+int test_compare_string(void)
+{
+    char buffer[100];
+    int i;
+    size_t size1;
+    size_t size2;
+    size_t size3;
+    struct pod_string *a_string;
+    struct pod_string *b_string;
+    struct pod_string *c_string;
+    struct pod_string *d_string;
+    int error;
+    int error_count;
+    int result;
+
+    printf("    test_compare_string\n");
+    error_count = 0;
+    size1 = strlen(test_string);
+    size2 = strlen(test_string2);
+    size3 = strlen(test_string3); 
+    a_string = pod_string_create(&error, size1, 0);
+    if (error != 0) {
+        return test_create_string_error("        (1) ", a_string);
+    }
+    b_string = pod_string_create(&error, size2, 0);
+    if (error != 0) {
+        return test_create_string_error("        (2) ", b_string);
+    }
+    c_string = pod_string_create(&error, size3, 0);
+    if (error != 0) {
+        return test_create_string_error("        (3) ", c_string);
+    }
+    d_string = pod_string_create(&error, size1, 0);
+    if (error != 0) {
+        return test_create_string_error("        (4) ", d_string);
+    }
+    pod_string_copy_from_cstring(a_string, test_string);
+    pod_string_copy_from_cstring(b_string, test_string2);
+    pod_string_copy_from_cstring(c_string, test_string3);
+    pod_string_copy_from_cstring(d_string, test_string);
+    result = pod_string_compare(b_string, a_string);
+    if (result >= 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, b_string);
+        printf("' to '");
+        test_print_string(stdout, a_string);
+        printf("'.\n");
+        printf("    Expected < 0.\n");
+    }
+    result = pod_string_compare(d_string, a_string);
+    if (result != 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, d_string);
+        printf("' to '");
+        test_print_string(stdout, a_string);
+        printf("'.\n");
+        printf("    Expected 0.\n");
+    }
+    result = pod_string_compare(c_string, a_string);
+    if (result <= 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, c_string);
+        printf("' to '");
+        test_print_string(stdout, a_string);
+        printf("'.\n");
+        printf("    Expected > 0.\n");
+    }
+    result = pod_string_compare_to_cstring(a_string, test_string3);
+    if (result >= 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, a_string);
+        printf("' to cstring '%s'.\n", test_string3);
+        printf("    Expected < 0.\n");
+    }
+    result = pod_string_compare_to_cstring(a_string, test_string);
+    if (result != 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, a_string);
+        printf("' to cstring '%s'.\n", test_string);
+        printf("    Expected 0.\n");
+    }
+    result = pod_string_compare_to_cstring(a_string, test_string2);
+    if (result <= 0) {
+        error_count++;
+        printf("Got %d comparing '", result);
+        test_print_string(stdout, a_string);
+        printf("' to cstring '%s'.\n", test_string2);
+        printf("    Expected > 0.\n");
+    }
 
     return error_count;
 }

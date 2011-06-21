@@ -21,12 +21,15 @@
 // bits.  (probably, I haven't verified this) intended for addresses at a byte
 // level.  Is size_t good to use?
 
-// TODO Other functions that might be useful: pod_append_string,
-// pod_dup_string, pod_copy_to_wstring, pod_copy_from_wstring
+// TODO Other functions that might be useful: pod_string_append,
+// pod_string_dup, pod_string_copy_to_wstring, pod_string_copy_from_wstring
 
-// TODO pod_copy_string and friends should be pod_string_copy and such.  In
+// DONE pod_copy_string and friends should be pod_string_copy and such.  In
 // this way namespace conflicts/confusions can be minimized.  Or the function
 // can be more easily be associated with pod_string.
+
+// TODO If malloc fails, it always returns NULL with errno set to ENOMEM, so
+// pod_string_create doesn't need the error parameter.  Get rid of it. 
 
 
     // Type value is POD_OBJECT_TYPE + 1
