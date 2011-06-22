@@ -31,7 +31,7 @@ struct pod_string *pod_string_create(size_t size, int flags)
         string->o.type = POD_STRING_TYPE;
         string->o.next = NULL;
         string->o.previous = NULL;
-        string->o.destroy = &pod_string_destroy;
+        string->o.destroy = pod_string_destroy;
         string->size = size;
         string->used = 0;
         string->flags = flags;
