@@ -19,7 +19,7 @@ const int POD_STRING_TYPE = 0x0b0001;
     //    The address of the new pod_string
     //    NULL if memory can't be allocated (with errno stored in error)
 
-struct pod_string *pod_string_create(int *error, size_t size, int flags)
+struct pod_string *pod_string_create(size_t size, int flags)
 {
     int i;
     size_t length;
@@ -27,10 +27,7 @@ struct pod_string *pod_string_create(int *error, size_t size, int flags)
 
     length = sizeof(struct pod_string) + (size * sizeof(pod_char_t));
     string = (struct pod_string *) malloc(length);
-    if (string == NULL) {
-        *error = errno;
-    } else {
-        *error = 0;
+    if (string != NULL) {
         string->o.type = POD_STRING_TYPE;
         string->o.next = NULL;
         string->o.previous = NULL;
