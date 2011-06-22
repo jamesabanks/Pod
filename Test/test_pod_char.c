@@ -76,27 +76,27 @@ int main(int argc, char *argv[])
     c = '[';
     if (c != OPEN_SQUARE) {
         error_count++;
-        fprintf(stdout, "    Open square ([) test failed\n");
+        fprintf(stdout, "    Open square bracket ([) test failed\n");
     }
     c = '\\';
     if (c != BACKSLASH) {
         error_count++;
-        fprintf(stdout, "    Backslash test failed\n");
+        fprintf(stdout, "    Backslash (\\) test failed\n");
     }
     c = ']';
     if (c != CLOSE_SQUARE) {
         error_count++;
-        fprintf(stdout, "    Close square test failed\n");
+        fprintf(stdout, "    Close square bracket (]) test failed\n");
     }
     c = '{';
     if (c != OPEN_BRACE) {
         error_count++;
-        fprintf(stdout, "    Open brace test failed\n");
+        fprintf(stdout, "    Open brace ({) test failed\n");
     }
     c = '}';
     if (c != CLOSE_BRACE) {
         error_count++;
-        fprintf(stdout, "    Close brace test failed\n");
+        fprintf(stdout, "    Close brace (}) test failed\n");
     }
     if (error_count == 1) {
         fprintf(stdout, "    1 error\n");
