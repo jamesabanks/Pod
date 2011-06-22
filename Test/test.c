@@ -80,7 +80,11 @@ static int run_test(char *name)
     } else {
         if (WIFEXITED(status)) {
             temp = WEXITSTATUS(status);
-            fprintf(stdout, "    FAILED (%d errors)\n", temp);
+            if (temp == 1) {
+                fprintf(stdout, "    FAILED (1 error)\n");
+            } else {
+                fprintf(stdout, "    FAILED (%d errors)\n", temp);
+            }
         } else {
             fprintf(stdout, "    FAILED (and/or didn't exit)\n");
         }
