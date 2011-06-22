@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     pod_char_t c;
 
     error_count = 0;
+    printf("    checking pod_char_t\n");
     for (i = 0; i < 128; i++) {
         c = i;
         if (c != i) {
@@ -101,6 +102,37 @@ int main(int argc, char *argv[])
         fprintf(stdout, "    1 error\n");
     } else if (error_count > 1) {
         fprintf(stdout, "    %d errors\n", error_count);
+    }
+    error_count += test_pod_char_copy();
+
+    return error_count;
+}
+
+
+
+    // test_pod_char_copy
+    //
+    // Test pod_char_copy by copying an array of pod_char_t containing 0-127.
+    // Since I don't guarantee anything beyond that, I'll leave it at that.
+
+int test_pod_char_copy(void)
+{
+    int i;
+    int error_count;
+    pod_char_t source[128];
+    pod_char_t target[128];
+
+    error_count = 0;
+    printf("    test_pod_char_copy\n");
+    for (i = 0; i < 128; i++) {
+        source[i] = i;
+        target[i] = 0;
+    }
+    pod_char_copy(target, source, 128);
+    for (i = 0; i < 128; i++) {
+        if (target[i] != i) {
+            error_count++;
+        }
     }
 
     return error_count;
