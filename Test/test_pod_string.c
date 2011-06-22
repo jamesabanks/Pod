@@ -43,7 +43,7 @@ int main(int argc, char *argv)
     // out the label string first to let whoever know about where the error
     // actuall occurred.
 
-int test_create_string_error(char *label, struct pod_string *string)
+int test_create_string_error(char *label)
 {
     int error_count;
     char *estr;
@@ -51,10 +51,7 @@ int test_create_string_error(char *label, struct pod_string *string)
     error_count = 1;
     estr = strerror(errno);
     printf("%sCouldn't create pod_string: %s (%d).\n", label, estr, errno);
-    if (string != NULL) {
-        error_count++;
-        printf("%s    and pod_create_string didn't return NULL.\n", label);
-    }
+    fflush(stdout);
 
     return error_count;
 }
@@ -84,47 +81,45 @@ void test_print_string(FILE *out, struct pod_string *string)
 
 int test_create_and_destroy(void)
 {
-    int error;
     int error_count;
-    char *estr;
     int i;
     struct pod_string *string;
 
     printf("    test_create_and_destroy\n");
     error_count = 0;
         // STRING_SIZE elements, no flags
-    string = pod_string_create(&error, STRING_SIZE, 0);
-    if (error != 0) {
-        return test_create_string_error("        ", string);
+    string = pod_string_create(STRING_SIZE, 0);
+    if (string == NULL) {
+        return test_create_string_error("        ");
     }
 
     if (string->o.type != POD_STRING_TYPE) {
         error_count++;
-        printf("    String's type is not POD_STRING_TYPE.\n");
+        printf("        String's type is not POD_STRING_TYPE.\n");
     }
     if (string->o.next != NULL) {
         error_count++;
-        printf("    String's o.next value is not NULL.\n");
+        printf("        String's o.next value is not NULL.\n");
     }
     if (string->o.previous != NULL) {
         error_count++;
-        printf("    String's o.previous value is not NULL.\n");
+        printf("        String's o.previous value is not NULL.\n");
     }
     if (string->o.destroy != pod_string_destroy) {
         error_count++;
-        printf("    String's o.destroy is not set to pod_destroy_string.\n");
+        printf("        String's o.destroy is not set to pod_destroy_string.\n");
     }
     if (string->size != STRING_SIZE) {
         error_count++;
-        printf("    String's size is not STRING_SIZE (%d).\n", STRING_SIZE);
+        printf("        String's size is not STRING_SIZE (%d).\n", STRING_SIZE);
     }
     if (string->used != 0) {
         error_count++;
-        printf("    String's used count is not 0, it is %lu.\n", string->used);
+        printf("        String's used count is not 0, it is %lu.\n", string->used);
     }
     if (string->flags != 0) {
         error_count++;
-        printf("    String's flags is not 0, it's %d.\n", string->flags);
+        printf("        String's flags is not 0, it's %d.\n", string->flags);
     }
     if (error_count != 0) {
         return error_count;
@@ -157,7 +152,6 @@ int test_copy_string(void)
     size_t size;
     struct pod_string *a_string;
     struct pod_string *b_string;
-    int error;
     int error_count;
 
     printf("    test_copy_string\n");
@@ -166,12 +160,11 @@ int test_copy_string(void)
     for (i = 0; i < 100; i++) {
         buffer[i] = 0xa5;  // a5 is 10100101
     }
-    a_string = pod_string_create(&error, size, 0);
-    if (error != 0) {
-        return test_create_string_error("        (1) ", a_string);
+    a_string = pod_string_create(size, 0);
+    if (a_string == NULL) {
+        return test_create_string_error("        a_string: ");
     }
 
-    fflush(stdout);
     pod_string_copy_from_cstring(a_string, test_string);
     pod_string_copy_to_cstring(buffer, a_string);
     buffer[99] = '\0';
@@ -182,12 +175,12 @@ int test_copy_string(void)
     for (i = 0; i < 100; i++) {
         buffer[i] = 0xa5;  // a5 is 10100101
     }
-    b_string = pod_string_create(&error, size, 0);
-    if (error != 0) {
-        return test_create_string_error("        (2) ", b_string);
+    b_string = pod_string_create(size, 0);
+    if (b_string == NULL) {
+        a_string->o.destroy(a_string);
+        return test_create_string_error("        b_string: ");
     }
 
-    fflush(stdout);
     pod_string_copy(b_string, a_string);
     pod_string_copy_to_cstring(buffer, b_string);
     buffer[99] = '\0';
@@ -198,6 +191,7 @@ int test_copy_string(void)
     b_string->o.destroy(b_string);
     a_string->o.destroy(a_string);
 
+    fflush(stdout);
     return error_count;
 }
 
@@ -205,8 +199,9 @@ int test_copy_string(void)
 
 int test_compare_string(void)
 {
-    char buffer[100];
     int i;
+    int error_count;
+    int result;
     size_t size1;
     size_t size2;
     size_t size3;
@@ -214,30 +209,33 @@ int test_compare_string(void)
     struct pod_string *b_string;
     struct pod_string *c_string;
     struct pod_string *d_string;
-    int error;
-    int error_count;
-    int result;
 
     printf("    test_compare_string\n");
     error_count = 0;
     size1 = strlen(test_string);
     size2 = strlen(test_string2);
     size3 = strlen(test_string3); 
-    a_string = pod_string_create(&error, size1, 0);
-    if (error != 0) {
-        return test_create_string_error("        (1) ", a_string);
+    a_string = pod_string_create(size1, 0);
+    if (a_string == NULL) {
+        return test_create_string_error("        a_string: ");
     }
-    b_string = pod_string_create(&error, size2, 0);
-    if (error != 0) {
-        return test_create_string_error("        (2) ", b_string);
+    b_string = pod_string_create(size2, 0);
+    if (b_string == NULL) {
+        a_string->o.destroy(a_string);
+        return test_create_string_error("        b_string: ");
     }
-    c_string = pod_string_create(&error, size3, 0);
-    if (error != 0) {
-        return test_create_string_error("        (3) ", c_string);
+    c_string = pod_string_create(size3, 0);
+    if (c_string == NULL) {
+        a_string->o.destroy(a_string);
+        b_string->o.destroy(a_string);
+        return test_create_string_error("        c_string: ");
     }
-    d_string = pod_string_create(&error, size1, 0);
-    if (error != 0) {
-        return test_create_string_error("        (4) ", d_string);
+    d_string = pod_string_create(size1, 0);
+    if (d_string == NULL) {
+        a_string->o.destroy(a_string);
+        b_string->o.destroy(a_string);
+        c_string->o.destroy(a_string);
+        return test_create_string_error("        d_string: ");
     }
     pod_string_copy_from_cstring(a_string, test_string);
     pod_string_copy_from_cstring(b_string, test_string2);
@@ -246,7 +244,7 @@ int test_compare_string(void)
     result = pod_string_compare(b_string, a_string);
     if (result >= 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, b_string);
         printf("' to '");
         test_print_string(stdout, a_string);
@@ -256,7 +254,7 @@ int test_compare_string(void)
     result = pod_string_compare(d_string, a_string);
     if (result != 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, d_string);
         printf("' to '");
         test_print_string(stdout, a_string);
@@ -266,7 +264,7 @@ int test_compare_string(void)
     result = pod_string_compare(c_string, a_string);
     if (result <= 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, c_string);
         printf("' to '");
         test_print_string(stdout, a_string);
@@ -276,7 +274,7 @@ int test_compare_string(void)
     result = pod_string_compare_to_cstring(a_string, test_string3);
     if (result >= 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, a_string);
         printf("' to cstring '%s'.\n", test_string3);
         printf("    Expected < 0.\n");
@@ -284,7 +282,7 @@ int test_compare_string(void)
     result = pod_string_compare_to_cstring(a_string, test_string);
     if (result != 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, a_string);
         printf("' to cstring '%s'.\n", test_string);
         printf("    Expected 0.\n");
@@ -292,7 +290,7 @@ int test_compare_string(void)
     result = pod_string_compare_to_cstring(a_string, test_string2);
     if (result <= 0) {
         error_count++;
-        printf("Got %d comparing '", result);
+        printf("        Got %d comparing '", result);
         test_print_string(stdout, a_string);
         printf("' to cstring '%s'.\n", test_string2);
         printf("    Expected > 0.\n");
