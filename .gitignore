@@ -1,4 +1,5 @@
 *.[oa]
+*.swo
 *.swp
 Test/test*
 !Test/test*.?
