@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "../pod_char.h"
 
 
@@ -119,11 +120,13 @@ int test_pod_char_copy(void)
 {
     int i;
     int error_count;
-    pod_char_t source[128];
-    pod_char_t target[128];
+    pod_char_t *source;
+    pod_char_t *target;
 
     error_count = 0;
     printf("    test_pod_char_copy\n");
+    source = malloc(128 * sizeof(pod_char_t));
+    target = malloc(128 * sizeof(pod_char_t));
     for (i = 0; i < 128; i++) {
         source[i] = i;
         target[i] = 0;
@@ -134,6 +137,8 @@ int test_pod_char_copy(void)
             error_count++;
         }
     }
+    free(target);
+    free(source);
 
     return error_count;
 }
