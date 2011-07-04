@@ -30,12 +30,16 @@ typedef void pod_destroy(void *);
 
     // And finally, the struct pod_object definition:
 
+struct pod_object;
+typedef struct pod_object pod_object;
+
 struct pod_object {
     int type;
-    struct pod_object *next;
-    struct pod_object *previous;
+    pod_object *next;
+    pod_object *previous;
     pod_destroy *destroy;
 };
+
 
 
 

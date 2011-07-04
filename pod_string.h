@@ -28,7 +28,7 @@
 // this way namespace conflicts/confusions can be minimized.  Or the function
 // can be more easily be associated with pod_string.
 
-// TODO If malloc fails, it always returns NULL with errno set to ENOMEM, so
+// DONE If malloc fails, it always returns NULL with errno set to ENOMEM, so
 // pod_string_create doesn't need the error parameter.  Get rid of it. 
 
 
@@ -53,8 +53,11 @@ enum pod_string_flags {
     // Allocation size for a pod_string is sizeof(struct pod_string) +
     // (n * sizeof(pod_char_t)).
 
+struct pod_string;
+typedef struct pod_string pod_string;
+
 struct pod_string {
-    struct pod_object o;
+    pod_object o;
     size_t size;
     size_t used;
     int flags;
@@ -65,17 +68,17 @@ struct pod_string {
 
     // Constructor and destructor
 
-extern struct pod_string *pod_string_create(size_t size, int f);
+extern pod_string *pod_string_create(size_t size, int f);
 extern void pod_string_destroy(void *string);
 
 
     // Other pod_string-related functions
 
-extern int pod_string_compare(struct pod_string *a, struct pod_string *b);
-extern int pod_string_compare_to_cstring(struct pod_string *ps, char *cs);
-extern void pod_string_copy(struct pod_string *to, struct pod_string *from);
-extern void pod_string_copy_from_cstring(struct pod_string *to, char *from);
-extern void pod_string_copy_to_cstring(char *to, struct pod_string *from);
+extern int pod_string_compare(pod_string *a, pod_string *b);
+extern int pod_string_compare_to_cstring(pod_string *ps, char *cs);
+extern void pod_string_copy(pod_string *to, pod_string *from);
+extern void pod_string_copy_from_cstring(pod_string *to, char *from);
+extern void pod_string_copy_to_cstring(char *to, pod_string *from);
 
 
 

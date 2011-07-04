@@ -19,14 +19,14 @@ const int POD_STRING_TYPE = 0x0b0001;
     //    The address of the new pod_string
     //    NULL if memory can't be allocated (with errno stored in error)
 
-struct pod_string *pod_string_create(size_t size, int flags)
+pod_string *pod_string_create(size_t size, int flags)
 {
     int i;
     size_t length;
-    struct pod_string *string;
+    pod_string *string;
 
-    length = sizeof(struct pod_string) + (size * sizeof(pod_char_t));
-    string = (struct pod_string *) malloc(length);
+    length = sizeof(pod_string) + (size * sizeof(pod_char_t));
+    string = (pod_string *) malloc(length);
     if (string != NULL) {
         string->o.type = POD_STRING_TYPE;
         string->o.next = NULL;
@@ -51,15 +51,15 @@ struct pod_string *pod_string_create(size_t size, int flags)
     //
     // Zero out the entire structure if desired.  Then free the memory.
 
-void pod_string_destroy(void *function)
+void pod_string_destroy(void *target)
 {
     int i;
-    struct pod_string *string;
+    pod_string *string;
     size_t size;
 
-    string = (struct pod_string *) function;
+    string = (pod_string *) target;
     if (string->flags & POD_DESTROY_ZERO) {    
-        size = sizeof(struct pod_string) + (string->size * sizeof(pod_char_t));
+        size = sizeof(pod_string) + (string->size * sizeof(pod_char_t));
         for (i = 0; i < size; i++) {
             ((char *) string)[i] = 0;
         }
@@ -83,7 +83,7 @@ void pod_string_destroy(void *function)
     //   -1 if a is shorter than b (and equal to b until a ends)
     //    1 if a is longer than b (and equal to b until b ends)
 
-int pod_string_compare(struct pod_string *a, struct pod_string *b)
+int pod_string_compare(pod_string *a, pod_string *b)
 {
     size_t amount;
     size_t i;
@@ -130,7 +130,7 @@ int pod_string_compare(struct pod_string *a, struct pod_string *b)
     //   -1 if ps is shorter than cs (and equal to cs until ps ends)
     //    1 if ps is longer than cs (and equal to cs until cs ends)
 
-int pod_string_compare_to_cstring(struct pod_string *ps, char *cs)
+int pod_string_compare_to_cstring(pod_string *ps, char *cs)
 {
     char c;
     size_t i;
@@ -167,7 +167,7 @@ int pod_string_compare_to_cstring(struct pod_string *ps, char *cs)
     // Copy a pod_string to a pod_string.  The pod_strings can be different
     // useds or sizes.
 
-void pod_string_copy(struct pod_string *to, struct pod_string *from)
+void pod_string_copy(pod_string *to, pod_string *from)
 {
     size_t amount;
     size_t i;
@@ -198,7 +198,7 @@ void pod_string_copy(struct pod_string *to, struct pod_string *from)
     // self-limiting because it won't copy more than to->size characters.
     // Which might be more than desired, but it won't cause a runaway loop.
 
-void pod_string_copy_from_cstring(struct pod_string *to, char *from)
+void pod_string_copy_from_cstring(pod_string *to, char *from)
 {
     size_t amount;
     size_t i;
@@ -232,7 +232,7 @@ void pod_string_copy_from_cstring(struct pod_string *to, char *from)
     // trailing '\0' is appended.  So the target should have room for the
     // string's contents (string->used) plus 1 (the '\0').
 
-void pod_string_copy_to_cstring(char *to, struct pod_string *from)
+void pod_string_copy_to_cstring(char *to, pod_string *from)
 {
     size_t i;
 
