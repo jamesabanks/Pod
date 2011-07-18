@@ -68,17 +68,21 @@ struct pod_string {
 
     // Constructor and destructor
 
-extern pod_string *pod_string_create(size_t size, int f);
+extern pod_string *pod_string_create(size_t size, int flags);
 extern void pod_string_destroy(void *string);
 
 
     // Other pod_string-related functions
 
+extern void pod_string_append_char(pod_string *string, pod_char_t c);
+extern void pod_string_clear(pod_string *string);
 extern int pod_string_compare(pod_string *a, pod_string *b);
 extern int pod_string_compare_to_cstring(pod_string *ps, char *cs);
 extern void pod_string_copy(pod_string *to, pod_string *from);
 extern void pod_string_copy_from_cstring(pod_string *to, char *from);
 extern void pod_string_copy_to_cstring(char *to, pod_string *from);
+extern pod_string *pod_string_dup(pod_string *string);
+extern pod_string *pod_string_duptext(pod_string *string);
 
 
 

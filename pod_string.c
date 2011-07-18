@@ -69,6 +69,39 @@ void pod_string_destroy(void *target)
 
 
 
+    // pod_string_append_char
+    //
+    // If there's room, add a pod_char_t onto the end of a pod_string.  If
+    // there isn't room, fail silently.
+
+void pod_string_append_char(pod_string *string, pod_char_t c)
+{
+    if (string->used < string->size) {
+        string->buffer[string->used] = c;
+        string->used++;
+    }
+}
+
+
+
+    // pod_string_clear
+    //
+    // Fill the buffer up to used with zeros, then reset used to zero.
+
+void pod_string_clear(pod_string *string)
+{
+    size_t i;
+    size_t used;
+
+    used = string->used;
+    for (i = 0; i < used; i++) {
+        string->buffer[i] = 0;
+    }
+    string->used = 0;
+}
+    
+
+
     // pod_string_compare
     //
     // Compare two pod_strings, called a and b.  The "size" member of a
@@ -242,3 +275,44 @@ void pod_string_copy_to_cstring(char *to, pod_string *from)
     to[i] = '\0';
 }
 
+
+
+    // pod_string_dup
+    //
+    // Make an exact copy, including contents, of a pod_string.  Contents does
+    // NOT include whatever is between used and size.  The flags used to create
+    // the original pod_string are used to create the duplicate.  The new
+    // string has the same size as the original.
+
+pod_string *pod_string_dup(pod_string *string)
+{
+    pod_string *new_string;
+
+    new_string = pod_string_create(string->size, string->flags);
+    if (new_string != NULL) {
+        pod_string_copy(new_string, string);
+    }
+
+    return new_string;
+}
+
+
+
+    // pod_string_duptext
+    //
+    // Make a copy of a pod_string.  The new string will have the same text
+    // as the original, but the size of the new string will only be big enough
+    // to hold the text.  There will be no unused part as there might be in the
+    // original.
+
+pod_string *pod_string_duptext(pod_string *string)
+{
+    pod_string *new_string;
+
+    new_string = pod_string_create(string->used, string->flags);
+    if (new_string != NULL) {
+        pod_string_copy(new_string, string);
+    }
+
+    return new_string;
+}

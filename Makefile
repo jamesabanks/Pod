@@ -7,7 +7,7 @@ objects = pod_char.o pod_object.o pod_string.o
 all:		libpod.a
 
 .PHONY:	debug
-debug:		CFLAGS := -g
+debug:		CFLAGS := -g -Wall
 debug:		$(objects) libpod.a
 
 libpod.a:	$(objects)

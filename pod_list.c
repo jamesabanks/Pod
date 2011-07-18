@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "pod_list.h"
 
 
@@ -17,7 +18,7 @@ const int POD_LIST_TYPE = 0x0b0002;
     //    The address of the new pod_list
     //    NULL if memory can't be allocated.
 
-pod_list *pod_list_create()
+pod_list *pod_list_create(bool is_map)
 {
     size_t length;
     pod_list *list;
@@ -31,6 +32,7 @@ pod_list *pod_list_create()
         list->o.destroy = pod_list_destroy;
         list->first = NULL;
         list->last = NULL;
+        list->is_map = is_map;
     }
 
     return list;
@@ -164,3 +166,63 @@ pod_object *pod_list_push(pod_list *list, pod_object *object)
     return object;
 }
 
+
+
+    // pod_list_get_key
+    //
+    // Look for a matching string in the list, and return it.
+
+pod_string *pod_list_get_key(pod_list *list, pod_string *key, size_t *pos)
+{
+    int different;
+    size_t index;
+    pod_object *object;
+    pod_string *string;
+
+    index = 0;
+    string = NULL;
+    object = list->first;
+    if (object != NULL) {
+        while (object != list) {
+            if (object->type == POD_STRING_TYPE)
+                string = (pod_string *) object;
+                different = pod_string_compare(key, string);
+                if (!different == 0) {
+                    break;
+                }
+            }
+            index++;
+            object = object->next;
+        }
+        if (object == list) {
+            index = 0;
+            string = NULL;
+        }
+    }
+
+    *pos = index;
+    return string;
+}
+
+
+
+    // pod_list_get
+    //
+    // Get the matching string (if any) and return the value associated w/ it.
+
+pod_object *pod_list_get(pod_list *list, pod_string *key, bool *found)
+{
+    size_t pos;
+    pod_object *object;
+    pod_string *string;
+
+    object = NULL;
+    *found = false;
+    string = pod_list_get_key(list, key, &pos);
+    if (string != NULL) {
+        object = string->value;
+        *found = true;
+    }
+
+    return object;
+}

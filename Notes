@@ -1,0 +1,102 @@
+a pod
+
+pod_stream_create
+    create a pod structure
+    give it a fd (which is provided)
+
+pod_stream_initialize
+    allocate everything that couldn't be allocated at create time
+
+pod_stream_destroy
+    deallocate allocated data
+    return the fd provide to create
+
+pod_stream_add_char(pod_char_t) -- the lexer
+    what state are we in?
+    what does the char mean?
+    if we don't have a token,
+        if it is a one-char token, for example "{"
+            pass it to parser
+        if it is a ws
+            do nothing
+        if it is a state-changer
+            change state
+        if it starts a token
+            put it in the buffer
+    if we do have a token
+        if it is a one-char token, for example "{"
+            pass the token to the parser
+            pass the new token to the parser
+        if it is a ws
+            pass the token to the parser
+        if it starts a new token
+            pass the old token to the parser
+            reset the buffer
+            put the new char in the buffer
+        if it is a state changer
+            change state
+
+
+a newline ends a token (and a line, but that doesn't mean anything).
+
+a ctrl-z (or whatever it was) ends a token.  It also empties the pod stack, so
+    unless the stack is empty it will return a pod.
+
+pod_stream_add must be something like:
+error = pod_stream_add('a', pod_object **pod);
+
+need something like pod_stream_terminate for indicating EOF or whatever other
+reason you want Pod to terminate.  Pod_terminate may return a pod.  Perhaps
+something like:
+error = pod_stream_terminate(pod_object **pod).
+
+the top level object, the pod stream (which doesn't really exist), is a list.
+But anything below that can be any type of object (meaning a string, a list, a
+map, etc) so pod is a pod_object.  Or is a pod_object a pod?  Should I replace
+pod_object with pod?
+ 
+pod_stream_add_token(pod_token?) -- the parser
+    switch (token)
+        if a string, (string alone, key, or value)
+            insert it into previous structure.
+            if there isn't a previous structure, return it.
+        if an opener (such as '{' or '<')
+            create a list or whatever
+            push it onto stack
+        if a closer (such as '}' or '>')
+            pop it off of stack
+            insert it into previous structure.
+            if there isn't a previous structure, return it.
+            if there isn't even a current structure, it's an error.  Ignore it.
+
+looks like pod_mapping is the way to go, as it is a structure.  So we put the
+string on the stack.
+
+If the next token is an '=', then we pop the string
+off the stack and put it in the pod_mapping as the key.  We put the pod_mapping
+on the stack.  We get the next pod_object and we put it in the pod_mapping as
+the value.  If we get a closer then we make a null string and put it in the
+value (it's an error, though).  Either way, then pop the structure and insert
+it (or prepare to return it).  Then, if we already have the next token, process
+it.
+
+Else if the next token is not an '=', pop the string and append to the top of
+the stack.  If there isn't another structure on the stack, return the string.
+
+If we get an '=' and the top-of-stack is not a string, it is an error.  Ignore
+it.
+
+If we get a ctrl-z (or whatever) and the stack is not empty, it is an error.
+An unbalanced structure.  Pop off each structure, placing it in the previous
+structure, until the stack is empty.  Return the structure.
+
+Two types of error.  One type is non-terminal.  The other is terminal.  When
+the programmer gets a terminal error, the pod_stream is closed.  I won't let
+you do anything else with it.  The programmer should close the connection (the
+fd) if it needs it.
+
+Need write functions.  Non-pretty for writing over connections, pretty for
+writing to files and consoles.  The programmer is responsible for translating
+pod_char_t's to the appropriate values (UTF8, etc).
+
+Comments.  I hate comments.
