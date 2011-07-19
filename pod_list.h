@@ -38,7 +38,7 @@ extern pod_object *pod_list_peek(pod_list *list);
 extern pod_object *pod_list_pop(pod_list *list);
 extern pod_object *pod_list_push(pod_list *list, pod_object *object);
 
-extern pod_object *pod_list_insert(pod_list *list, size_t pos);
+extern pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *o);
 extern pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *to);
 extern pod_object *pod_list_delete(pod_list *list, size_t pos);
 

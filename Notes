@@ -99,4 +99,11 @@ Need write functions.  Non-pretty for writing over connections, pretty for
 writing to files and consoles.  The programmer is responsible for translating
 pod_char_t's to the appropriate values (UTF8, etc).
 
-Comments.  I hate comments.
+Comments.  I hate comments.  Do I have a ; or not?  Right now I'm thinking not.
+
+Need a concatenate operator.  How about '%'?  Means conbine the next string
+with the previous string.  The way I'm thinking about implementing this is to
+not pass a string token to the parser until the lexer is sure (has gotten a
+non-concatenate token) it isn't going to need the string.  This cuts out the
+need for the parser to resize strings whenever it needs to combine them.
+
