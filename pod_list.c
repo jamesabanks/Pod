@@ -1,10 +1,9 @@
-#include <stdbool.h>
 #include <stdlib.h>
 #include "pod_list.h"
 
 
 
-    // Initialize POD_STRING to 0x62, which is POD_OBJECT_TYPE + 2
+    // Initialize POD_LIST_TYPE to 0x62, which is POD_OBJECT_TYPE + 2
     // This means that pod_list was the second class written after pod_object.
 
 const int POD_LIST_TYPE = 0x62;
@@ -172,23 +171,26 @@ void pod_list_push(pod_list *list, pod_object *object)
 
 pod_object *pod_list_find(pod_list *list, size_t pos)
 {
-    pod_object *first_next;
+    pod_object *object;
     size_t p;
 
     
-    first_next = list->first;
+    object = list->first;
     p = 0;
-    if (list->first != NULL) {
-        while (p != pos && first_next != (pod_object *) list) {
+    if (object != NULL) {
+    /* If the list is not empty */
+        while (p != pos && object != (pod_object *) list) {
+        /* Walk the list until we reach the pos-th position or the end */
             ++p;
-            first_next = first_next->next;
+            object = object->next;
         }
         if (p != pos) {
-            first_next = NULL;
+        /* We didn't reach the pos-th position so we reached the end */
+            object = NULL;
         }
     }
 
-    return first_next;
+    return object;
 }
 
 
@@ -206,7 +208,7 @@ pod_object *pod_list_find(pod_list *list, size_t pos)
 
 pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
 {
-    pod_object *first_next;
+    pod_object *n;
     size_t p;
 
     // object should not be NULL
@@ -216,29 +218,36 @@ pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
     if (object->next != NULL || object->previous != NULL) return NULL;
     
     if (pos == 0) {
+    /* If inserting at the very beginning (pos=0)... */
         if (list->first == NULL) {
+        /* The list is empty */
             object->previous = object->next = (pod_object *) list;
             list->last = list->first = object;
         } else {
+        /* Just insert at the front */
             object->previous = (pod_object *) list;
             object->next = list->first;
             list->first = object;
         }
     } else {
+    /* Look for the place at pos, after which the object is to be inserted */
         p = 1;
-        first_next = list->first;
-        while (p < pos && first_next->next != (pod_object *) list) {
+        n = list->first;
+        while (p < pos && n->next != (pod_object *) list) {
+        /* Walk the list until we reach the pos-th position or the end */
             p++;
-            first_next = first_next->next;
+            n = n->next;
         }
         if (p == pos) {
-            object->previous = first_next;
-            object->next = first_next->next;
-            first_next->next = object;
-            if (list->last == first_next) {
+        /* We reached the pos-th position */
+            object->previous = n;
+            object->next = n->next;
+            n->next = object;
+            if (list->last == n) {
                 list->last = object;
             }
         } else {
+        /* We reached the end instead */
             object = NULL;
         }
     }
@@ -260,29 +269,144 @@ pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
 
 pod_object *pod_list_remove(pod_list *list, size_t pos)
 {
-    pod_object *first_next;
+    pod_object *n;
     size_t p;
-
-    
-    first_next = list->first;
+ 
+    n = list->first;
     p = 0;
-    if (list->first != NULL) {
-        while (p != pos && first_next != (pod_object *) list) {
+    if (n != NULL) {   
+    /* If there is at least one object */
+        while (p != pos && n != (pod_object *) list) {
+        /* Walk the list until we've reached the pos-th position */
             ++p;
-            first_next = first_next->next;
+            n = n->next;
         }
-        if (p != pos) {
-            first_next = NULL;
+        if (n == (pod_object *) list) {
+        /* If we didn't reach the pos-th position, we reached the end.*/
+            n = NULL;
         } else {
-            if (list->first == first_next) {
+        /* N now points to the pos-th pod_object */
+            if (n->previous == (pod_object *) list) {
+            /* If this is the first object in the list... */
+                if (n->next == (pod_object *) list) {
+                    list->first = NULL;
+                } else {
+                    list->first = n->next;
+                }
+            } else {
+            /* Previous object exists, point its next ptr to n's next ptr */
+                n->previous->next = n->next;
             }
-            if (list->last == first_next) {
+            if (n->next == (pod_object *) list) {
+            /* If this is the last object in the list */
+                if (n->previous == (pod_object *) list) {
+                    list->last = NULL;
+                } else {
+                    list->last = n->previous;
+                }
+            } else {
+            /* Next object exists, point its previous ptr to n's previous ptr */
+                n->next->previous = n->previous;
             }
+            /* N extracted, now clear its own pointers */
+            n->previous = NULL;
+            n->next = NULL;
+        }
     }
 
-    return first_next;
+    return n;
+}
+
+
+
+    // pod_list_replace
+    //
+    // Find the object at position pos and replace it with the provided object.
+    //
+    // Returns:
+    //      NULL            Position pos doesn't exist.
+    //      pod_object *    The object that was replaced.
+
+pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *object)
+{
+    pod_object *n;
+    size_t p;
+
+    n = list->first;
+    p = 0;
+    if (n != NULL) {   
+    /* If there is at least one object */
+        while (p != pos && n != (pod_object *) list) {
+        /* Walk the list until we've reached the pos-th position */
+            ++p;
+            n = n->next;
+        }
+        if (n == (pod_object *) list) {
+        /* If we didn't reach the pos-th position, we reached the end.*/
+            n = NULL;
+        } else {
+        /* N now points to the pos-th pod_object */
+            object->previous = n->previous;
+            if (n->previous == (pod_object *) list) {
+            /* If this is the first object in the list */
+                list->first = object;
+            }
+            n->previous = NULL;
+            object->next = n->next;
+            if (n->next == (pod_object *) list) {
+            /* If this is the last object in the list */
+                list->last = object;
+            }
+            n->next = NULL;
+        }
+    }
+
+    return n;
+}
+
+
+
+    // pod_list_size
+    //
+    // Determine the number of objects in the list.
+    //
+    // Returns:
+    //      size_t  The number of objects counted in the list.
+
+size_t pod_list_size(pod_list *list)
+{
+    pod_object *object;
+    size_t size; 
+
+    object = list->first;
+    size = 0;
+    while (object->next != (pod_object *) list) {
+        ++size;
+        object = object->next;
+    }
+
+    return size;
+}
+
+
+
+    // pod_list_apply_all
+    //
+    // Call the provided function on the first object in the list.  Then call
+    // the function on whatever the first call returned.  And so on, until the
+    // called function returns the list.  Often what the apply function returns
+    // will be the next member, but this isn't guaranteed.  In fact it can't
+    // be, so we must the apply function to return the meaningful successor.
+    
+    // TODO Some helper functions may be helpful for writing apply functions,
+    // such as insert, remove, and replace.
+
+void pod_list_apply_all(pod_list *list, pod_list_apply *apply)
+{
     pod_object *object;
 
-    object = pod_list_find(list, pos);
-
-
+    object = list->first;
+    while (object != (pod_object *) list) {
+        object = apply(list, object);
+    }
+}
