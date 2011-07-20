@@ -1,7 +1,7 @@
 
 
 
-// Initialize POD_OBJECT_TYPE to 0xb0000, which has no significance at all.
+// Initialize POD_OBJECT_TYPE to 0x60, which has no significance at all.
 
-const int POD_OBJECT_TYPE = 0x0b0000;
+const int POD_OBJECT_TYPE = 0x60;
 

@@ -27,11 +27,6 @@ extern const int POD_OBJECT_TYPE;
 
 typedef void pod_destroy(void *);
 
-    // TODO Do I want a function type that acts on a pod.  Or is this too vague
-    // to be applicable.
-
-// typedef void pod_apply(pod_object *object);
-
 
     // And finally, the struct pod_object definition:
 

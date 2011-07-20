@@ -11,7 +11,7 @@
 // the contents are referenced by key.
 
 
-    // Type is POD_OBJECT_TYPE + 4
+    // Type is POD_OBJECT_TYPE + 4 or 0x0bad0004
 
 extern const int POD_MAP_TYPE;
 

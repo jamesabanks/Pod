@@ -4,10 +4,10 @@
 
 
 
-    // Initialize POD_STRING_TYPE to 0xb0001, which is POD_OBJECT_TYPE + 1
+    // Initialize POD_STRING_TYPE to 0x61, which is POD_OBJECT_TYPE + 1
     // This means that pod_string was the first class written after pod_object.
 
-const int POD_STRING_TYPE = 0x0b0001;
+const int POD_STRING_TYPE = 0x61;
 
 
 

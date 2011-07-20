@@ -1,12 +1,13 @@
 #include <stdbool.h>
+#include <stdlib.h>
 #include "pod_list.h"
 
 
 
-    // Initialize POD_STRING to 0xb0002, which is POD_OBJECT_TYPE + 2
+    // Initialize POD_STRING to 0x62, which is POD_OBJECT_TYPE + 2
     // This means that pod_list was the second class written after pod_object.
 
-const int POD_LIST_TYPE = 0x0b0002;
+const int POD_LIST_TYPE = 0x62;
 
 
 
@@ -18,7 +19,7 @@ const int POD_LIST_TYPE = 0x0b0002;
     //    The address of the new pod_list
     //    NULL if memory can't be allocated.
 
-pod_list *pod_list_create(bool is_map)
+pod_list *pod_list_create(void)
 {
     size_t length;
     pod_list *list;
@@ -32,7 +33,6 @@ pod_list *pod_list_create(bool is_map)
         list->o.destroy = pod_list_destroy;
         list->first = NULL;
         list->last = NULL;
-        list->is_map = is_map;
     }
 
     return list;
@@ -64,17 +64,17 @@ void pod_list_destroy(void *target)
     // pod_list_append
     //
     // Place an object at the end of a list.  If the object is NULL, ignore it.
+    // If the object's previous or next members are not NULL, ignore the object.
 
-pod_object *pod_list_append(pod_list *list, pod_object *object)
+void pod_list_append(pod_list *list, pod_object *object)
 {
     pod_object *prev_last;
 
-    // list should not be NULL
     // object should not be NULL
+    if (object == NULL) return;
+
     // object should not already be a member of a list
-    if (list == NULL) return NULL;
-    if (object == NULL) return NULL;
-    if (object->next != NULL || object->previous != NULL) return NULL;
+    if (object->next != NULL || object->previous != NULL) return;
 
     if (list->last == NULL) {
         object->previous = object->next = (pod_object *) list;
@@ -86,15 +86,32 @@ pod_object *pod_list_append(pod_list *list, pod_object *object)
         object->next = (pod_object *) list;
         list->last = object; 
     }
+}
 
-    return object;
+
+
+    // pod_list_peek
+    //
+    // Get the address of the first object in the list.
+    //
+    // Returns:
+    //      NULL            The list was empty.
+    //      pod_object *    The first item in the list.
+
+pod_object *pod_list_peek(pod_list *list)
+{
+    return list->first;
 }
 
 
 
     // pod_list_pop
     //
-    // Get the first item from the list, unlink it, and return it.
+    // Remove the first item from the list and return it.
+    //
+    // Returns:
+    //      NULL            The list was empty.
+    //      pod_object *    The (previously) first item in the list.
 
 pod_object *pod_list_pop(pod_list *list)
 {
@@ -115,42 +132,21 @@ pod_object *pod_list_pop(pod_list *list)
 
 
 
-    // pod_list_pop_last
-    //
-    // Get the last item from the list, unlink it, and return it.
-
-pod_object *pod_list_pop_last(pod_list *list)
-{
-    pod_object *object;
-
-    object = list->last;
-    if (object != NULL) {
-        if (list->first == list->last) {
-            list->first = list->last = NULL;
-        } else {
-            list->last = object->previous;
-        }
-        object->next = object->previous = NULL;
-    }
-
-    return object;
-}
-
-
-
     // pod_list_push
     //
-    // Insert an object into the front of a list.
+    // Insert an object into the front of a list.  If the object is NULL,
+    // ignore it.  If the object's previous or next member is NULL, ignore the
+    // object.
 
-pod_object *pod_list_push(pod_list *list, pod_object *object)
+void pod_list_push(pod_list *list, pod_object *object)
 {
     pod_object *first_next;
 
     // object should not be NULL
-    // object should not already be a member of a list
+    if (object == NULL) return;
 
-    if (object == NULL) return NULL;
-    if (object->next != NULL || object->previous != NULL) return NULL;
+    // object should not already be a member of a list
+    if (object->next != NULL || object->previous != NULL) return;
 
     if (list->first == NULL) {
         object->previous = object->next = (pod_object *) list;
@@ -162,67 +158,131 @@ pod_object *pod_list_push(pod_list *list, pod_object *object)
         object->next = first_next;
         list->first = object;
     }
-
-    return object;
 }
 
 
 
-    // pod_list_get_key
+    // pod_list_find
     //
-    // Look for a matching string in the list, and return it.
+    // Find the object at the given position.
+    //
+    // Returns:
+    //      NULL            The position doesn't exist.
+    //      pod_object *    The object found at the position.
 
-pod_string *pod_list_get_key(pod_list *list, pod_string *key, size_t *pos)
+pod_object *pod_list_find(pod_list *list, size_t pos)
 {
-    int different;
-    size_t index;
-    pod_object *object;
-    pod_string *string;
+    pod_object *first_next;
+    size_t p;
 
-    index = 0;
-    string = NULL;
-    object = list->first;
-    if (object != NULL) {
-        while (object != list) {
-            if (object->type == POD_STRING_TYPE)
-                string = (pod_string *) object;
-                different = pod_string_compare(key, string);
-                if (!different == 0) {
-                    break;
-                }
+    
+    first_next = list->first;
+    p = 0;
+    if (list->first != NULL) {
+        while (p != pos && first_next != (pod_object *) list) {
+            ++p;
+            first_next = first_next->next;
+        }
+        if (p != pos) {
+            first_next = NULL;
+        }
+    }
+
+    return first_next;
+}
+
+
+
+    // pod_list_insert
+    //
+    // Insert a pod_object into the list at position pos.  Return the address
+    // of the inserted object.  Inserting at position 0 is equivalent to (but
+    // not identical) to pod_list_push.
+    //
+    // Returns:
+    //      NULL            The object was NULL, the position doesn't exist, or
+    //                        the object's previous or next member wasn't NULL.
+    //      pod_object *    Object sucessfully inserted, and this is it.
+
+pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
+{
+    pod_object *first_next;
+    size_t p;
+
+    // object should not be NULL
+    if (object == NULL) return NULL;
+
+    // object should not be a member of a list
+    if (object->next != NULL || object->previous != NULL) return NULL;
+    
+    if (pos == 0) {
+        if (list->first == NULL) {
+            object->previous = object->next = (pod_object *) list;
+            list->last = list->first = object;
+        } else {
+            object->previous = (pod_object *) list;
+            object->next = list->first;
+            list->first = object;
+        }
+    } else {
+        p = 1;
+        first_next = list->first;
+        while (p < pos && first_next->next != (pod_object *) list) {
+            p++;
+            first_next = first_next->next;
+        }
+        if (p == pos) {
+            object->previous = first_next;
+            object->next = first_next->next;
+            first_next->next = object;
+            if (list->last == first_next) {
+                list->last = object;
             }
-            index++;
-            object = object->next;
+        } else {
+            object = NULL;
         }
-        if (object == list) {
-            index = 0;
-            string = NULL;
-        }
-    }
-
-    *pos = index;
-    return string;
-}
-
-
-
-    // pod_list_get
-    //
-    // Get the matching string (if any) and return the value associated w/ it.
-
-pod_object *pod_list_get(pod_list *list, pod_string *key, bool *found)
-{
-    size_t pos;
-    pod_object *object;
-    pod_string *string;
-
-    object = NULL;
-    *found = false;
-    string = pod_list_get_key(list, key, &pos);
-    if (string != NULL) {
-        object = string->value;
-        *found = true;
     }
 
     return object;
 }
+
+
+
+    // pod_list_remove
+    // 
+    // Remove the pod_object at position pos from the list.  Return the address
+    // of the removed object.  Removing from position 0 is equivalent (but not
+    // quite identical) to pod_list_pop.
+    //
+    // Returns:
+    //      NULL            Position pos wasn't found.
+    //      pod_object *    The removed object.
+
+pod_object *pod_list_remove(pod_list *list, size_t pos)
+{
+    pod_object *first_next;
+    size_t p;
+
+    
+    first_next = list->first;
+    p = 0;
+    if (list->first != NULL) {
+        while (p != pos && first_next != (pod_object *) list) {
+            ++p;
+            first_next = first_next->next;
+        }
+        if (p != pos) {
+            first_next = NULL;
+        } else {
+            if (list->first == first_next) {
+            }
+            if (list->last == first_next) {
+            }
+    }
+
+    return first_next;
+    pod_object *object;
+
+    object = pod_list_find(list, pos);
+
+

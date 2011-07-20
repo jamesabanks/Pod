@@ -1,5 +1,5 @@
 CFLAGS = -O2
-objects = pod_char.o pod_object.o pod_string.o
+objects = pod_char.o pod_object.o pod_string.o pod_list.o pod_mapping.o pod_map.o
 
 
 
