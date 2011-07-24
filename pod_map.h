@@ -11,7 +11,7 @@
 // the contents are referenced by key.
 
 
-    // Type is POD_OBJECT_TYPE + 4 or 0x0bad0004
+    // Type is POD_OBJECT_TYPE + 4 or 0x64
 
 extern const int POD_MAP_TYPE;
 
@@ -36,11 +36,10 @@ extern void pod_map_destroy(void *target);
 
     // Other pod_map-related functions
 
-extern void pod_map_add(pod_map *map, pod_string *key, pod_object *value);
-extern void pod_map_add_mapping(pod_map *map, pod_mapping *mapping);
-extern pod_mapping *pod_map_extract(pod_map *map, pod_string *key);
-extern pod_object *pod_map_lookup(pod_string *key);
-extern pod_mapping *pod_map_lookup_mapping(pod_string *key);
+extern pod_mapping *pod_map_lookup_mapping(pod_map *map, pod_string *key);
+extern pod_object *pod_map_lookup(pod_map *map, pod_string *key);
+extern void pod_map_set(pod_map *map, pod_string *key, pod_object *value);
+extern pod_object *pod_map_remove(pod_map *map, pod_string *key);
 
 extern void pod_map_iterate(pod_map *map);
 extern pod_mapping *pod_map_next(pod_map *map);
@@ -49,4 +48,4 @@ extern size_t pod_map_size(pod_map *map);
 
 
 
-#endif /* INCLUDE_POD_MAP_H
+#endif /* INCLUDE_POD_MAP_H */
