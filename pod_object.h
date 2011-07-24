@@ -1,12 +1,14 @@
 #ifndef INCLUDE_POD_OBJECT_H
 #define INCLUDE_POD_OBJECT_H
 
+#include "pod_node.h"
+
 
 
 // This is object-oriented programing, C-style.  All pod data is stored in
 // instances of subclasses of pod_object, which itself would be abstract,
-// if C supported such concepts.  This isn't intended to be a robust, complete,
-// etc., (whatever those words mean) object system.  Just enough to get the job
+// if C had such things.  This isn't intended to be thorough, complete, etc.,
+// (whatever those words mean) object system.  Just enough to get the job
 // done.  I'm writing pod objects to always be allocated on the heap (via
 // malloc) and never on the stack (as parameters or local variables).
 
@@ -34,12 +36,10 @@ struct pod_object;
 typedef struct pod_object pod_object;
 
 struct pod_object {
+    pod_node node;
     int type;
-    pod_object *next;
-    pod_object *previous;
     pod_destroy *destroy;
 };
-
 
 
 
