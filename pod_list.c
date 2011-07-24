@@ -122,6 +122,7 @@ pod_object *pod_list_pop(pod_list *list)
             list->first = list->last = NULL;
         } else {
             list->first = object->next;
+            object->next->previous = (pod_object *) list;
         }
         object->next = object->previous = NULL;
     }
