@@ -26,7 +26,7 @@ struct pod_mapping {
 };
 
 
-    // Constructor and destructor
+    // Constructors and destructor
 
 extern pod_mapping *pod_mapping_create(void);
 extern pod_mapping *pod_mapping_create_with(pod_string *key, pod_object *value);

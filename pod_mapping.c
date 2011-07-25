@@ -23,9 +23,9 @@ pod_mapping *pod_mapping_create(void)
 
     mapping = (pod_mapping *) malloc(sizeof(pod_mapping));
     if (mapping != NULL) {
+        mapping->o.n.previous = NULL;
+        mapping->o.n.next = NULL;
         mapping->o.type = POD_MAPPING_TYPE;
-        mapping->o.next = NULL;
-        mapping->o.previous = NULL;
         mapping->o.destroy = pod_mapping_destroy;
         mapping->key = NULL;
         mapping->value = NULL;
@@ -49,12 +49,8 @@ pod_mapping *pod_mapping_create_with(pod_string *key, pod_object *value)
 {
     pod_mapping *mapping;
 
-    mapping = (pod_mapping *) malloc(sizeof(pod_mapping));
+    mapping = pod_mapping_create();
     if (mapping != NULL) {
-        mapping->o.type = POD_MAPPING_TYPE;
-        mapping->o.next = NULL;
-        mapping->o.previous = NULL;
-        mapping->o.destroy = pod_mapping_destroy;
         mapping->key = key;
         mapping->value = value;
     }
@@ -73,11 +69,11 @@ void pod_mapping_destroy(void *target)
     pod_mapping *mapping;
 
     mapping = (pod_mapping *) target;
-    if (mapping->key) {
+    if (mapping->key == NULL) {
         mapping->key->o.destroy(mapping->key);
         mapping->key = NULL;
     }
-    if (mapping->value) {
+    if (mapping->value == NULL) {
         mapping->value->destroy(mapping->value);
         mapping->value = NULL;
     }
