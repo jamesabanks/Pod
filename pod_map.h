@@ -22,8 +22,7 @@ typedef struct pod_map pod_map;
 
 struct pod_map {
     pod_object o;
-    pod_mapping *first;
-    pod_mapping *last;
+    pod_node header;
     pod_mapping *current;
 };
 

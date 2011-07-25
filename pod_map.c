@@ -1,11 +1,12 @@
 #include <stddef.h>
+#include <stdlib.h>
 #include "pod_map.h"
 
 
 
 // Initialize POD_MAP_TYPE to 0x64
 
-const int POD_MAP_TYPE = 0x64
+const int POD_MAP_TYPE = 0x64;
 
 
 
@@ -23,12 +24,12 @@ pod_map *pod_map_create(void)
 
     map = (pod_map *) malloc(sizeof(pod_map));
     if (map != NULL) {
+        map->o.n.previous = NULL;
+        map->o.n.next = NULL;
         map->o.type = POD_MAP_TYPE;
-        map->o.next = NULL;
-        map->o.previous = NULL;
         map->o.destroy = pod_map_destroy;
-        map->first = NULL;
-        map->last = NULL;
+        map->header.previous = &map->header;
+        map->header.next = &map->header;
         map->current = NULL;
     }
 
@@ -39,24 +40,20 @@ pod_map *pod_map_create(void)
 
     // pod_map_destroy
     //
-    // If not empty, destroy each contained object. Then free the map.  This is
-    // essentially the same as pod_list_destroy/pod_list_pop.
+    // If not empty, destroy each contained object. Then free the map.  Compare
+    // to pod_list_pop.
 
 void pod_map_destroy(void *target)
 {
     pod_map *map;
+    pod_node *node;
     pod_object *object;
 
     map = (pod_map *) target;
-    while (map->first != NULL) {
-        object = (pod_object *) map->first;
-        if (map->first == map->last) {
-            map->first = map->last = NULL;
-        } else {
-            map->first = object->next;
-            object->next->previous = (pod_object *) map;
-        }
-        object->next = object->previous = NULL;
+    node = map->header.next;
+    while (node != &map->header) {
+        object = (pod_object *) node;
+        node = pod_node_remove(node);
         object->destroy(object);
     }
     free(map);
