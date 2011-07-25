@@ -36,7 +36,7 @@ struct pod_object;
 typedef struct pod_object pod_object;
 
 struct pod_object {
-    pod_node node;
+    pod_node n;
     int type;
     pod_destroy *destroy;
 };

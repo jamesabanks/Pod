@@ -12,7 +12,7 @@
 // They have a maximum size (size) and a length in use (used).  In this sense,
 // they are more like Pascal strings than C strings.
 
-// TODO (I'm thinking about this...) Keys must be strings, so
+// DONE (I'm thinking about this...) Keys must be strings, so
 // I stuck a value member in every string because I don't see the point of
 // another struct (that would be the key-value pair).
 

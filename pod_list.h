@@ -21,8 +21,7 @@ typedef struct pod_list pod_list;
 
 struct pod_list {
     pod_object o;
-    pod_object *first;
-    pod_object *last;
+    pod_node header;
 };
 
 

@@ -28,8 +28,8 @@ pod_string *pod_string_create(size_t size, int flags)
     length = sizeof(pod_string) + (size * sizeof(pod_char_t));
     string = (pod_string *) malloc(length);
     if (string != NULL) {
-        string->o.node.previous = &string->o.node;
-        string->o.node.next = &string->o.node;
+        string->o.n.previous = &string->o.n;
+        string->o.n.next = &string->o.n;
         string->o.type = POD_STRING_TYPE;
         string->o.destroy = pod_string_destroy;
         string->size = size;

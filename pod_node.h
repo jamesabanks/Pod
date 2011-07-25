@@ -5,13 +5,14 @@
 
 // A node is a place on a list.  It simplifies doubly linked lists because the
 // header is just another node.  Everything in Pod is a node, potentially a
-// part of a list or map.  Nodes should be initialized to point to themselves.
+// part of a list or map.  Header nodes should be initialized to point to
+// themselves.  Otherwise, initialize them to NULL.
 //
 // For example:
-//      pod_node node;
+//      pod_node header;
 //
-//      node.previous = &node
-//      node.next = &node
+//      header.previous = &header;
+//      header.next = &header;
 
 
 struct pod_node;

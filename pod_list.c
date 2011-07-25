@@ -23,15 +23,14 @@ pod_list *pod_list_create(void)
     size_t length;
     pod_list *list;
 
-    length = sizeof(pod_list);
-    list = (pod_list *) malloc(length);
+    list = (pod_list *) malloc(sizeof(pod_list));
     if (list != NULL) {
+        list->o.n.previous = &list->o.n;
+        list->o.n.next = &list->o.n;
         list->o.type = POD_LIST_TYPE;
-        list->o.next = NULL;
-        list->o.previous = NULL;
         list->o.destroy = pod_list_destroy;
-        list->first = NULL;
-        list->last = NULL;
+        list->header.previous = &list->header;
+        list->header.next = &list->header;
     }
 
     return list;
@@ -62,29 +61,25 @@ void pod_list_destroy(void *target)
 
     // pod_list_append
     //
-    // Place an object at the end of a list.  If the object is NULL, ignore it.
-    // If the object's previous or next members are not NULL, ignore the object.
+    // Place an object at the end of a list.  If the object is NULL, ignore it
+    // and return.  If the object has a node.previous or node.next member,
+    // ignore the object and return.
 
 void pod_list_append(pod_list *list, pod_object *object)
 {
-    pod_object *prev_last;
+    pod_node *node;
 
-    // object should not be NULL
     if (object == NULL) return;
+    // object should not be NULL
 
+    if (object->n.next != NULL || object->n.previous != NULL) return;
     // object should not already be a member of a list
-    if (object->next != NULL || object->previous != NULL) return;
 
-    if (list->last == NULL) {
-        object->previous = object->next = (pod_object *) list;
-        list->last = list->first = object;
-    } else {
-        prev_last = list->last;
-        prev_last->next = object;
-        object->previous = prev_last;
-        object->next = (pod_object *) list;
-        list->last = object; 
-    }
+    node = &list->header;
+    object->n.previous = node->previous;
+    object->n.next = node;
+    node->previous->next = &object->n;
+    node->previous = &object->n;
 }
 
 
@@ -99,7 +94,16 @@ void pod_list_append(pod_list *list, pod_object *object)
 
 pod_object *pod_list_peek(pod_list *list)
 {
-    return list->first;
+    pod_node *node;
+    pod_object *object;
+
+    object = NULL;
+    node = &list->header;
+    if (node->next != node) {
+        object = (pod_object *) node->next;
+    }
+
+    return object;
 }
 
 
@@ -114,17 +118,16 @@ pod_object *pod_list_peek(pod_list *list)
 
 pod_object *pod_list_pop(pod_list *list)
 {
+    pod_node *node;
     pod_object *object;
 
-    object = list->first;
-    if (object != NULL) {
-        if (list->first == list->last) {
-            list->first = list->last = NULL;
-        } else {
-            list->first = object->next;
-            object->next->previous = (pod_object *) list;
-        }
-        object->next = object->previous = NULL;
+    object = NULL;
+    node = &list->header;
+    if (node->next != node) {
+        object = (pod_object *) node->next;
+        node->next->next->previous = node;
+        node->next = node->next->next;
+        object->n.previous = object->n.next = NULL;
     }
 
     return object;
@@ -135,29 +138,24 @@ pod_object *pod_list_pop(pod_list *list)
     // pod_list_push
     //
     // Insert an object into the front of a list.  If the object is NULL,
-    // ignore it.  If the object's previous or next member is NULL, ignore the
-    // object.
+    // ignore it and return.  If the object has a node.previous or node.next
+    // member, ignore the object and return.
 
 void pod_list_push(pod_list *list, pod_object *object)
 {
-    pod_object *first_next;
+    pod_node *node;
 
-    // object should not be NULL
     if (object == NULL) return;
+    // object should not be NULL
 
+    if (object->n.next != NULL || object->n.previous != NULL) return;
     // object should not already be a member of a list
-    if (object->next != NULL || object->previous != NULL) return;
 
-    if (list->first == NULL) {
-        object->previous = object->next = (pod_object *) list;
-        list->last = list->first = object;
-    } else {
-        first_next = list->first;
-        first_next->previous = object;
-        object->previous = (pod_object *) list;
-        object->next = first_next;
-        list->first = object;
-    }
+    node = &list->header;
+    object->n.previous = node;
+    object->n.next = node->next;
+    node->next->previous = &object->n;
+    node->next = &object->n;
 }
 
 
@@ -172,22 +170,23 @@ void pod_list_push(pod_list *list, pod_object *object)
 
 pod_object *pod_list_find(pod_list *list, size_t pos)
 {
+    pod_node *node;
     pod_object *object;
     size_t p;
 
-    
-    object = list->first;
+    node = &list->header;
+    object = NULL;
     p = 0;
-    if (object != NULL) {
+    if (node != node->next) {
     /* If the list is not empty */
-        while (p != pos && object != (pod_object *) list) {
+        while ((p != pos) && (node != &list->header)) {
         /* Walk the list until we reach the pos-th position or the end */
+            node = node->next;
             ++p;
-            object = object->next;
         }
-        if (p != pos) {
-        /* We didn't reach the pos-th position so we reached the end */
-            object = NULL;
+        if (p == pos) {
+        /* We reached the pos-th position */
+            object = (pod_object *) node;
         }
     }
 
