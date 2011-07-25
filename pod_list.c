@@ -123,12 +123,10 @@ pod_object *pod_list_pop(pod_list *list)
     pod_object *object;
 
     object = NULL;
-    node = &list->header;
-    if (node->next != node) {
-        object = (pod_object *) node->next;
-        node->next->next->previous = node;
-        node->next = node->next->next;
-        object->n.previous = object->n.next = NULL;
+    node = list->header.next;
+    if (node != &list->header) {
+        object = (pod_object *) node;
+        node = pod_node_remove(node);
     }
 
     return object;
@@ -269,9 +267,10 @@ pod_object *pod_list_remove(pod_list *list, size_t pos)
 
     at_pos = pod_list_find(list, pos);
     if (at_pos != NULL) {
-        at_pos->n.previous->next = at_pos->n.next;
+        pod_node_remove(&at_pos->n);
+     /* at_pos->n.previous->next = at_pos->n.next;
         at_pos->n.next->previous = at_pos->n.previous;
-        at_pos->n.previous = at_pos->n.next = NULL;
+        at_pos->n.previous = at_pos->n.next = NULL; */
     }
 
     return at_pos;
