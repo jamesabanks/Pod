@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include "pod_list.h"
 
@@ -176,9 +177,11 @@ pod_object *pod_list_find(pod_list *list, size_t pos)
 
     node = &list->header;
     object = NULL;
-    p = 0;
     if (node != node->next) {
     /* If the list is not empty */
+        node = node->next;
+        p = 0;
+        /* We'll label the first object number 0 */
         while ((p != pos) && (node != &list->header)) {
         /* Walk the list until we reach the pos-th position or the end */
             node = node->next;
@@ -203,53 +206,46 @@ pod_object *pod_list_find(pod_list *list, size_t pos)
     //
     // Returns:
     //      NULL            The object was NULL, the position doesn't exist, or
-    //                        the object's previous or next member wasn't NULL.
+    //                      the object's previous or next member wasn't NULL.
     //      pod_object *    Object sucessfully inserted, and this is it.
 
 pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
 {
-    pod_object *n;
+    bool found;
+    pod_node *node;
     size_t p;
 
-    // object should not be NULL
     if (object == NULL) return NULL;
+    /* object should not be NULL */
 
-    // object should not be a member of a list
-    if (object->next != NULL || object->previous != NULL) return NULL;
+    if (object->n.next != NULL || object->n.previous != NULL) return NULL;
+    /* object should not be a member of a list */
     
-    if (pos == 0) {
-    /* If inserting at the very beginning (pos=0)... */
-        if (list->first == NULL) {
-        /* The list is empty */
-            object->previous = object->next = (pod_object *) list;
-            list->last = list->first = object;
-        } else {
-        /* Just insert at the front */
-            object->previous = (pod_object *) list;
-            object->next = list->first;
-            list->first = object;
+    node = &list->header;
+    p = 0;
+    /* We'll label the gap between the header and the first node as 0, and we
+       insert after the found node.  We can always insert at 0, as this is
+       after the header.  If there are 0 objects, we can insert in one place,
+       1 object means 2 places, and so on. */
+    found = true;
+    while (p != pos) {
+    /* Walk the list looking for pos */
+        ++p;
+        node = node->next;
+        if (node == &list->header) {
+        /* didn't find pos as we got back to the header */
+            found = false;
+            break;
         }
+    }
+    if (found) {
+    /* Insert after the found node */
+        object->n.previous = node;
+        object->n.next = node->next;
+        node->next->previous = &object->n;
+        node->next = &object->n;
     } else {
-    /* Look for the place at pos, after which the object is to be inserted */
-        p = 1;
-        n = list->first;
-        while (p < pos && n->next != (pod_object *) list) {
-        /* Walk the list until we reach the pos-th position or the end */
-            p++;
-            n = n->next;
-        }
-        if (p == pos) {
-        /* We reached the pos-th position */
-            object->previous = n;
-            object->next = n->next;
-            n->next = object;
-            if (list->last == n) {
-                list->last = object;
-            }
-        } else {
-        /* We reached the end instead */
-            object = NULL;
-        }
+        object = NULL;
     }
 
     return object;
