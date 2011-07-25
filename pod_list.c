@@ -260,57 +260,21 @@ pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *object)
     // quite identical) to pod_list_pop.
     //
     // Returns:
-    //      NULL            Position pos wasn't found.
+    //      NULL            Position pos doesn't exist.
     //      pod_object *    The removed object.
 
 pod_object *pod_list_remove(pod_list *list, size_t pos)
 {
-    pod_object *n;
-    size_t p;
- 
-    n = list->first;
-    p = 0;
-    if (n != NULL) {   
-    /* If there is at least one object */
-        while (p != pos && n != (pod_object *) list) {
-        /* Walk the list until we've reached the pos-th position */
-            ++p;
-            n = n->next;
-        }
-        if (n == (pod_object *) list) {
-        /* If we didn't reach the pos-th position, we reached the end.*/
-            n = NULL;
-        } else {
-        /* N now points to the pos-th pod_object */
-            if (n->previous == (pod_object *) list) {
-            /* If this is the first object in the list... */
-                if (n->next == (pod_object *) list) {
-                    list->first = NULL;
-                } else {
-                    list->first = n->next;
-                }
-            } else {
-            /* Previous object exists, point its next ptr to n's next ptr */
-                n->previous->next = n->next;
-            }
-            if (n->next == (pod_object *) list) {
-            /* If this is the last object in the list */
-                if (n->previous == (pod_object *) list) {
-                    list->last = NULL;
-                } else {
-                    list->last = n->previous;
-                }
-            } else {
-            /* Next object exists, point its previous ptr to n's previous ptr */
-                n->next->previous = n->previous;
-            }
-            /* N extracted, now clear its own pointers */
-            n->previous = NULL;
-            n->next = NULL;
-        }
+    pod_object *at_pos;
+
+    at_pos = pod_list_find(list, pos);
+    if (at_pos != NULL) {
+        at_pos->n.previous->next = at_pos->n.next;
+        at_pos->n.next->previous = at_pos->n.previous;
+        at_pos->n.previous = at_pos->n.next = NULL;
     }
 
-    return n;
+    return at_pos;
 }
 
 
@@ -325,39 +289,18 @@ pod_object *pod_list_remove(pod_list *list, size_t pos)
 
 pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *object)
 {
-    pod_object *n;
-    size_t p;
+    pod_object *at_pos;
 
-    n = list->first;
-    p = 0;
-    if (n != NULL) {   
-    /* If there is at least one object */
-        while (p != pos && n != (pod_object *) list) {
-        /* Walk the list until we've reached the pos-th position */
-            ++p;
-            n = n->next;
-        }
-        if (n == (pod_object *) list) {
-        /* If we didn't reach the pos-th position, we reached the end.*/
-            n = NULL;
-        } else {
-        /* N now points to the pos-th pod_object */
-            object->previous = n->previous;
-            if (n->previous == (pod_object *) list) {
-            /* If this is the first object in the list */
-                list->first = object;
-            }
-            n->previous = NULL;
-            object->next = n->next;
-            if (n->next == (pod_object *) list) {
-            /* If this is the last object in the list */
-                list->last = object;
-            }
-            n->next = NULL;
-        }
+    at_pos = pod_list_find(list, pos);
+    if (at_pos != NULL) {
+        object->n.previous = at_pos->n.previous;
+        object->n.next = at_pos->n.next;
+        at_pos->n.previous->next = &object->n;
+        at_pos->n.next->previous = &object->n;
+        at_pos->n.previous = at_pos->n.next = NULL;
     }
 
-    return n;
+    return at_pos;
 }
 
 
@@ -371,14 +314,14 @@ pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *object)
 
 size_t pod_list_size(pod_list *list)
 {
-    pod_object *object;
+    pod_node *node;
     size_t size; 
 
-    object = list->first;
+    node = list->header.next;
     size = 0;
-    while (object->next != (pod_object *) list) {
+    while (node != &list->header) {
         ++size;
-        object = object->next;
+        node = node->next;
     }
 
     return size;
@@ -399,10 +342,13 @@ size_t pod_list_size(pod_list *list)
 
 void pod_list_apply_all(pod_list *list, pod_list_apply *apply)
 {
+    pod_node *node;
     pod_object *object;
 
-    object = list->first;
-    while (object != (pod_object *) list) {
+    node = list->header.next;
+    while (node != &list->header) {
+        object = (pod_object *) node;
         object = apply(list, object);
+        node = object->n.next;
     }
 }
