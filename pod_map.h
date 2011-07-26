@@ -23,7 +23,7 @@ typedef struct pod_map pod_map;
 struct pod_map {
     pod_object o;
     pod_node header;
-    pod_mapping *current;
+    pod_node *current;
 };
 
 
@@ -37,7 +37,7 @@ extern void pod_map_destroy(void *target);
 
 extern pod_mapping *pod_map_lookup_mapping(pod_map *map, pod_string *key);
 extern pod_object *pod_map_lookup(pod_map *map, pod_string *key);
-extern void pod_map_set(pod_map *map, pod_string *key, pod_object *value);
+extern pod_object *pod_map_set(pod_map *map, pod_string *key, pod_object *val);
 extern pod_object *pod_map_remove(pod_map *map, pod_string *key);
 
 extern void pod_map_iterate(pod_map *map);
