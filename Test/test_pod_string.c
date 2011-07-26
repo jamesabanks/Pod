@@ -97,13 +97,13 @@ int test_create_and_destroy(void)
         error_count++;
         printf("        String's type is not POD_STRING_TYPE.\n");
     }
-    if (string->o.next != NULL) {
-        error_count++;
-        printf("        String's o.next value is not NULL.\n");
-    }
-    if (string->o.previous != NULL) {
+    if (string->o.n.previous != NULL) {
         error_count++;
         printf("        String's o.previous value is not NULL.\n");
+    }
+    if (string->o.n.next != NULL) {
+        error_count++;
+        printf("        String's o.next value is not NULL.\n");
     }
     if (string->o.destroy != pod_string_destroy) {
         error_count++;
