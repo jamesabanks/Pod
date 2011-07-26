@@ -21,7 +21,6 @@ const int POD_LIST_TYPE = 0x62;
 
 pod_list *pod_list_create(void)
 {
-    size_t length;
     pod_list *list;
 
     list = (pod_list *) malloc(sizeof(pod_list));
