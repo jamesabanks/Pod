@@ -26,9 +26,10 @@ struct pod_node {
 };
 
 
+    // Other pod_node related functions
 
-extern pod_node *pod_node_remove(pod_node *node);
-inline pod_node *pod_node_remove(pod_node *node) 
+// extern pod_node *pod_node_remove(pod_node *node);
+extern inline pod_node *pod_node_remove(pod_node *node) 
 {
     pod_node *next;
 
@@ -40,7 +41,6 @@ inline pod_node *pod_node_remove(pod_node *node)
     return next;
 }
  
-
 
 
 #endif /*INCLUDE_POD_NODE_H */
