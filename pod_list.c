@@ -71,10 +71,10 @@ void pod_list_append(pod_list *list, pod_object *object)
     pod_node *node;
 
     if (object == NULL) return;
-    // object should not be NULL
+    /* object should not be NULL */
 
     if (object->n.next != NULL || object->n.previous != NULL) return;
-    // object should not already be a member of a list
+    /* object should not already be a member of a list */
 
     node = &list->header;
     object->n.previous = node->previous;
