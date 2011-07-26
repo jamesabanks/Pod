@@ -28,7 +28,6 @@ struct pod_node {
 
     // Other pod_node related functions
 
-// extern pod_node *pod_node_remove(pod_node *node);
 extern inline pod_node *pod_node_remove(pod_node *node) 
 {
     pod_node *next;
