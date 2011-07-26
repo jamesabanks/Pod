@@ -298,14 +298,14 @@ pod_string *pod_string_dup(pod_string *string)
 
 
 
-    // pod_string_duptext
+    // pod_string_dup_text
     //
     // Make a copy of a pod_string.  The new string will have the same text
     // as the original, but the size of the new string will only be big enough
     // to hold the text.  There will be no unused part as there might be in the
     // original.
 
-pod_string *pod_string_duptext(pod_string *string)
+pod_string *pod_string_dup_text(pod_string *string)
 {
     pod_string *new_string;
 
