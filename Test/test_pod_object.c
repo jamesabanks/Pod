@@ -9,7 +9,7 @@
 // pod_object isn't meant to ever be used directly, so there is no code to
 // test.
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
     int error_count;
 

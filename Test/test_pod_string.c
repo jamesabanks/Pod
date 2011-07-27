@@ -19,7 +19,7 @@ pod_char_t test_char = 0x6e; /* 'n' */
 
     // Test pod_string and its associated functions.
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
     int error_count;
 
