@@ -42,13 +42,13 @@ extern void pod_list_append(pod_list *list, pod_object *object);
 extern pod_object *pod_list_peek(pod_list *list);
 extern pod_object *pod_list_pop(pod_list *list);
 extern void pod_list_push(pod_list *list, pod_object *object);
+extern size_t pod_list_size(pod_list *list);
 
 extern pod_object *pod_list_find(pod_list *list, size_t pos);
 extern pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *obj);
 extern pod_object *pod_list_remove(pod_list *list, size_t pos);
-extern pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *to);
 
-extern size_t pod_list_size(pod_list *list);
+extern pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *to);
 extern void pod_list_apply_all(pod_list *list, pod_list_apply *apply);
 
 
