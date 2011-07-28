@@ -158,6 +158,30 @@ void pod_list_push(pod_list *list, pod_object *object)
 
 
 
+    // pod_list_size
+    //
+    // Determine the number of objects in the list.
+    //
+    // Returns:
+    //      size_t  The number of objects counted in the list.
+
+size_t pod_list_size(pod_list *list)
+{
+    pod_node *node;
+    size_t size; 
+
+    node = list->header.next;
+    size = 0;
+    while (node != &list->header) {
+        ++size;
+        node = node->next;
+    }
+
+    return size;
+}
+
+
+
     // pod_list_find
     //
     // Find the object at the given position.
@@ -289,6 +313,9 @@ pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *object)
 {
     pod_object *at_pos;
 
+    if (object == NULL) return NULL;
+    /* object should not be NULL */
+
     at_pos = pod_list_find(list, pos);
     if (at_pos != NULL) {
         object->n.previous = at_pos->n.previous;
@@ -299,30 +326,6 @@ pod_object *pod_list_replace(pod_list *list, size_t pos, pod_object *object)
     }
 
     return at_pos;
-}
-
-
-
-    // pod_list_size
-    //
-    // Determine the number of objects in the list.
-    //
-    // Returns:
-    //      size_t  The number of objects counted in the list.
-
-size_t pod_list_size(pod_list *list)
-{
-    pod_node *node;
-    size_t size; 
-
-    node = list->header.next;
-    size = 0;
-    while (node != &list->header) {
-        ++size;
-        node = node->next;
-    }
-
-    return size;
 }
 
 
