@@ -55,7 +55,6 @@ int test_create_string_error(char *label)
     error_count = 1;
     estr = strerror(errno);
     printf("%sCouldn't create pod_string: %s (%d).\n", label, estr, errno);
-    fflush(stdout);
 
     return error_count;
 }
@@ -97,21 +96,21 @@ int test_create_and_destroy(void)
         return test_create_string_error("        ");
     }
 
+    if (string->o.n.previous != NULL) {
+        error_count++;
+        printf("        String's o.n.previous value is not NULL.\n");
+    }
+    if (string->o.n.next != NULL) {
+        error_count++;
+        printf("        String's o.n.next value is not NULL.\n");
+    }
     if (string->o.type != POD_STRING_TYPE) {
         error_count++;
         printf("        String's type is not POD_STRING_TYPE.\n");
     }
-    if (string->o.n.previous != &string->o.n) {
-        error_count++;
-        printf("        String's o.n.previous value is not the node's address.\n");
-    }
-    if (string->o.n.next != &string->o.n) {
-        error_count++;
-        printf("        String's o.n.next value is not the node's address.\n");
-    }
     if (string->o.destroy != pod_string_destroy) {
         error_count++;
-        printf("        String's o.destroy is not set to pod_destroy_string.\n");
+        printf("        String's o.destroy is not set to pod_string_string.\n");
     }
     if (string->size != STRING_SIZE) {
         error_count++;
@@ -129,7 +128,6 @@ int test_create_and_destroy(void)
         return error_count;
     }
 
-    fflush(stdout);
     for (i = 0; i < STRING_SIZE; i++) {
         // Some sort of malloc tester needs to be used to see if reading or
         //   writing doesn't work.  Is this actually happening or is this being
@@ -195,7 +193,6 @@ int test_copy_string(void)
     b_string->o.destroy(b_string);
     a_string->o.destroy(a_string);
 
-    fflush(stdout);
     return error_count;
 }
 
@@ -370,7 +367,7 @@ int test_dup(void)
 
     // test_append
     //
-    // Test the pod_string_append... functions.
+    // Test the pod_string_append functions.
 
 int test_append(void)
 {
