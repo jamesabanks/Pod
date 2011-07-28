@@ -25,8 +25,8 @@ pod_list *pod_list_create(void)
 
     list = (pod_list *) malloc(sizeof(pod_list));
     if (list != NULL) {
-        list->o.n.previous = &list->o.n;
-        list->o.n.next = &list->o.n;
+        list->o.n.previous = NULL;
+        list->o.n.next = NULL;
         list->o.type = POD_LIST_TYPE;
         list->o.destroy = pod_list_destroy;
         list->header.previous = &list->header;
