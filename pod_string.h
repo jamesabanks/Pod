@@ -82,7 +82,7 @@ extern void pod_string_copy(pod_string *to, pod_string *from);
 extern void pod_string_copy_from_cstring(pod_string *to, char *from);
 extern void pod_string_copy_to_cstring(char *to, pod_string *from);
 extern pod_string *pod_string_dup(pod_string *string);
-extern pod_string *pod_string_duptext(pod_string *string);
+extern pod_string *pod_string_dup_text(pod_string *string);
 
 
 

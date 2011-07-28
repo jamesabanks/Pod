@@ -28,8 +28,8 @@ pod_string *pod_string_create(size_t size, int flags)
     length = sizeof(pod_string) + (size * sizeof(pod_char_t));
     string = (pod_string *) malloc(length);
     if (string != NULL) {
-        string->o.n.previous = &string->o.n;
-        string->o.n.next = &string->o.n;
+        string->o.n.previous = NULL;
+        string->o.n.next = NULL;
         string->o.type = POD_STRING_TYPE;
         string->o.destroy = pod_string_destroy;
         string->size = size;
@@ -298,14 +298,14 @@ pod_string *pod_string_dup(pod_string *string)
 
 
 
-    // pod_string_duptext
+    // pod_string_dup_text
     //
     // Make a copy of a pod_string.  The new string will have the same text
     // as the original, but the size of the new string will only be big enough
     // to hold the text.  There will be no unused part as there might be in the
     // original.
 
-pod_string *pod_string_duptext(pod_string *string)
+pod_string *pod_string_dup_text(pod_string *string)
 {
     pod_string *new_string;
 

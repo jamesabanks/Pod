@@ -5,7 +5,7 @@
 
 
 
-#define STRING_SIZE 56
+#define STRING_SIZE 100
 
 
 
@@ -13,24 +13,28 @@ volatile int tmp;
 char *test_string = "Mary had a little lamb.";
 char *test_string2 = "Baa, baa, black sheep.";
 char *test_string3 = "Peter peter pumpkin eater.";
+pod_char_t test_char = 0x6e; /* 'n' */
 
 
 
     // Test pod_string and its associated functions.
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
     int error_count;
 
     error_count = 0;
-    if (POD_STRING_TYPE != 0xb0001) {
+    printf("\n    testing pod_string\n");
+    if (POD_STRING_TYPE != 0x61) {
         error_count++;
         printf("    POD_STRING_TYPE is not the expected value.\n");
-        printf("        (expected 0xb0001, got 0x%x.)\n", POD_STRING_TYPE);
+        printf("        (expected 0x61, got 0x%x.)\n", POD_STRING_TYPE);
     }
     error_count += test_create_and_destroy();
     error_count += test_copy_string();
     error_count += test_compare_string();
+    error_count += test_dup();
+    error_count += test_append();
 
     return error_count;
 }
@@ -51,7 +55,6 @@ int test_create_string_error(char *label)
     error_count = 1;
     estr = strerror(errno);
     printf("%sCouldn't create pod_string: %s (%d).\n", label, estr, errno);
-    fflush(stdout);
 
     return error_count;
 }
@@ -93,21 +96,21 @@ int test_create_and_destroy(void)
         return test_create_string_error("        ");
     }
 
+    if (string->o.n.previous != NULL) {
+        error_count++;
+        printf("        String's o.n.previous value is not NULL.\n");
+    }
+    if (string->o.n.next != NULL) {
+        error_count++;
+        printf("        String's o.n.next value is not NULL.\n");
+    }
     if (string->o.type != POD_STRING_TYPE) {
         error_count++;
         printf("        String's type is not POD_STRING_TYPE.\n");
     }
-    if (string->o.n.previous != NULL) {
-        error_count++;
-        printf("        String's o.previous value is not NULL.\n");
-    }
-    if (string->o.n.next != NULL) {
-        error_count++;
-        printf("        String's o.next value is not NULL.\n");
-    }
     if (string->o.destroy != pod_string_destroy) {
         error_count++;
-        printf("        String's o.destroy is not set to pod_destroy_string.\n");
+        printf("        String's o.destroy is not set to pod_string_string.\n");
     }
     if (string->size != STRING_SIZE) {
         error_count++;
@@ -115,7 +118,7 @@ int test_create_and_destroy(void)
     }
     if (string->used != 0) {
         error_count++;
-        printf("        String's used count is not 0, it is %lu.\n", string->used);
+        printf("        String's used count is not 0, it is %u.\n", string->used);
     }
     if (string->flags != 0) {
         error_count++;
@@ -125,7 +128,6 @@ int test_create_and_destroy(void)
         return error_count;
     }
 
-    fflush(stdout);
     for (i = 0; i < STRING_SIZE; i++) {
         // Some sort of malloc tester needs to be used to see if reading or
         //   writing doesn't work.  Is this actually happening or is this being
@@ -191,7 +193,6 @@ int test_copy_string(void)
     b_string->o.destroy(b_string);
     a_string->o.destroy(a_string);
 
-    fflush(stdout);
     return error_count;
 }
 
@@ -296,5 +297,113 @@ int test_compare_string(void)
         printf("    Expected > 0.\n");
     }
 
+    return error_count;
+}
+
+
+
+    // test_dup
+    //
+    // Test the functions pod_string_dup and pod_string_dup_text.
+
+int test_dup(void)
+{
+    pod_string *dup;
+    pod_string *dup_text;
+    int error_count;
+    int result;
+    pod_string *string;
+
+    printf("    test_dup\n");
+    error_count = 0;
+    string = pod_string_create(STRING_SIZE, 0);
+    if (string == NULL) {
+        return test_create_string_error("        string:");
+    }
+    pod_string_copy_from_cstring(string, test_string);
+    dup = pod_string_dup(string);
+    if (dup == NULL) {
+        return test_create_string_error("        dup:");
+    }
+    dup_text = pod_string_dup_text(string);
+    if (dup_text == NULL) {
+        return test_create_string_error("        dup_text:");
+    }
+    if (string->size == 0) {
+        error_count++;
+        printf("        string->size is 0.  It should have been initialized to something else.\n");
+    }
+    if (string->size != dup->size) {
+        error_count++;
+        printf("        string->size (%u) and dup->size (%u) differ.\n", string->size, dup->size);
+    }
+    if (string->used != dup->used) {
+        error_count++;
+        printf("        string->used (%u) and dup->used (%u) differ.\n", string->used, dup->used);
+    }
+    result = pod_string_compare(string, dup);
+    if (result != 0) {
+        error_count++;
+        printf("        string and dup don't have the same text.\n");
+    }
+    if (string->size == dup_text->size) {
+        error_count++;
+        printf("        string->size (%u) and dup_text->size (%u) are the same.\n", string->size, dup_text->size);
+    }
+    if (string->used != dup_text->used) {
+        error_count++;
+        printf("        string->used (%u) and dup_text->used (%u) differ.\n", string->used, dup_text->used);
+    }
+    result = pod_string_compare(string, dup_text);
+    if (result != 0) {
+        error_count++;
+        printf("        string and dup_text don't have the same text.\n");
+    }
+
+    return error_count;
+}
+
+
+
+    // test_append
+    //
+    // Test the pod_string_append functions.
+
+int test_append(void)
+{
+    char chars[STRING_SIZE + 1];
+    int error_count;
+    size_t new_used;
+    pod_string *string;
+    size_t used;
+
+    printf("    test_append\n");
+    chars[STRING_SIZE] = '\0';
+    error_count = 0;
+    string = pod_string_create(STRING_SIZE, 0);
+    if (string == NULL) {
+        return test_create_string_error("        string:");
+    }
+    if (string->used != 0) {
+        ++error_count;
+        printf("        string->used is NOT 0, and it was just created.\n");
+    }
+    pod_string_append_char(string, test_char);
+    if (string->used != 1) {
+        ++error_count;
+        printf("        string->used is NOT 1.\n");
+        pod_string_copy_to_cstring(chars, string);
+        printf("            (String: %s)\n", chars);
+    }
+    pod_string_copy_from_cstring(string, test_string);
+    used = string->used;
+    pod_string_append_char(string, test_char);
+    if (string->used - used != 1) {
+        ++error_count;
+        printf("        Appending a pod_char_t didn't change a string by 1.\n");
+        pod_string_copy_to_cstring(chars, string);
+        printf("            (String: %s)\n", chars);
+    }
+ 
     return error_count;
 }

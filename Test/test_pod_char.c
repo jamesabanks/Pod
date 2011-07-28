@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     pod_char_t c;
 
     error_count = 0;
-    printf("    checking pod_char_t\n");
+    printf("\n    testing pod_char_t\n");
     for (i = 0; i < 128; i++) {
         c = i;
         if (c != i) {
