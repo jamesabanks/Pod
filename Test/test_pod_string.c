@@ -118,7 +118,7 @@ int test_create_and_destroy(void)
     }
     if (string->used != 0) {
         error_count++;
-        printf("        String's used count is not 0, it is %u.\n", string->used);
+        printf("        String's used count is not 0, it is %zu.\n", string->used);
     }
     if (string->flags != 0) {
         error_count++;
@@ -335,11 +335,11 @@ int test_dup(void)
     }
     if (string->size != dup->size) {
         error_count++;
-        printf("        string->size (%u) and dup->size (%u) differ.\n", string->size, dup->size);
+        printf("        string->size (%zu) and dup->size (%zu) differ.\n", string->size, dup->size);
     }
     if (string->used != dup->used) {
         error_count++;
-        printf("        string->used (%u) and dup->used (%u) differ.\n", string->used, dup->used);
+        printf("        string->used (%zu) and dup->used (%zu) differ.\n", string->used, dup->used);
     }
     result = pod_string_compare(string, dup);
     if (result != 0) {
@@ -348,11 +348,11 @@ int test_dup(void)
     }
     if (string->size == dup_text->size) {
         error_count++;
-        printf("        string->size (%u) and dup_text->size (%u) are the same.\n", string->size, dup_text->size);
+        printf("        string->size (%zu) and dup_text->size (%zu) are the same.\n", string->size, dup_text->size);
     }
     if (string->used != dup_text->used) {
         error_count++;
-        printf("        string->used (%u) and dup_text->used (%u) differ.\n", string->used, dup_text->used);
+        printf("        string->used (%zu) and dup_text->used (%zu) differ.\n", string->used, dup_text->used);
     }
     result = pod_string_compare(string, dup_text);
     if (result != 0) {

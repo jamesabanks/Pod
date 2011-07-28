@@ -116,7 +116,7 @@ int test_list_append_peek_pop_push(void)
         if (size != (size_t) i + 1) {
             ++error_count;
             printf("        Post-append size is not what is expected.\n");
-            printf("            (expected %d, got %u)\n", i + 1, size);
+            printf("            (expected %d, got %zu)\n", i + 1, size);
         }
     }
     for (i = 3; i >= 0; i--) {
@@ -131,7 +131,7 @@ int test_list_append_peek_pop_push(void)
         if (size != (size_t) i) {
             ++error_count;
             printf("        (1) Post-pop size is not what is expected.\n");
-            printf("            (expected %d, got %u)\n", i, size);
+            printf("            (expected %d, got %zu)\n", i, size);
         }
     }
     for (i = 0; i < 4; i++) {
@@ -146,7 +146,7 @@ int test_list_append_peek_pop_push(void)
         if (size != (size_t) i + 1) {
             ++error_count;
             printf("        Post-push size is not what is expected.\n");
-            printf("            (expected %d, got %u)\n", i + 1, size);
+            printf("            (expected %d, got %zu)\n", i + 1, size);
         }
     }
     for (i = 3; i >= 0; i--) {
@@ -161,7 +161,7 @@ int test_list_append_peek_pop_push(void)
         if (size != (size_t) i) {
             ++error_count;
             printf("        (2) List's size is not what is expected.\n");
-            printf("            (expected %d, got %u)\n", i, size);
+            printf("            (expected %d, got %zu)\n", i, size);
         }
     }
 }
