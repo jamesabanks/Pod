@@ -4,7 +4,8 @@ CFLAGS = -g
 LDFLAGS = -L.. -lpod -lefence
 # LESS = /Users/james/Applications/MacVim.app/Contents/Resources/vim/runtime/macros/less.sh
 LESS = /usr/share/vim/vim73/macros/less.sh
-tests = test_pod_char test_pod_object test_pod_string test_pod_list
+tests = test_pod_char test_pod_object test_pod_string test_pod_list \
+        test_pod_mapping
 
 
 
@@ -25,6 +26,9 @@ test_pod_string:	test_pod_string.c ../libpod.a
 
 test_pod_list:	test_pod_list.c ../libpod.a
 	$(CC) $(CFLAGS) test_pod_list.c -o test_pod_list $(LDFLAGS)
+
+test_pod_mapping:	test_pod_mapping.c ../libpod.a
+	$(CC) $(CFLAGS) test_pod_mapping.c -o test_pod_mapping $(LDFLAGS)
 
 .PHONY: results
 results:	all
