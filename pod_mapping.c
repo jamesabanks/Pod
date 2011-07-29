@@ -69,11 +69,11 @@ void pod_mapping_destroy(void *target)
     pod_mapping *mapping;
 
     mapping = (pod_mapping *) target;
-    if (mapping->key == NULL) {
+    if (mapping->key != NULL) {
         mapping->key->o.destroy(mapping->key);
         mapping->key = NULL;
     }
-    if (mapping->value == NULL) {
+    if (mapping->value != NULL) {
         mapping->value->destroy(mapping->value);
         mapping->value = NULL;
     }
