@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
     int error_count;
     int i;
 
-    error_count = 0;
     printf("\n    testing pod_list\n");
+    error_count = 0;
     if (POD_LIST_TYPE != 0x62) {
         error_count++;
         printf("    POD_LIST_TYPE is not the expected value.\n");
@@ -65,6 +65,8 @@ int test_create_and_destroy_list(void)
     error_count = 0;
     list = pod_list_create();
     if (list == NULL) {
+        printf("        pod_list_create returned NULL\n");
+        return 1;
     }
     if (list->o.n.previous != NULL) {
         ++error_count;
@@ -445,6 +447,6 @@ int test_list_apply_all(void)
     printf("    test_list_apply_all\n");
     error_count = 0;
     list = pod_list_create();
-    printf("        Not implemented yet.\n");
+    printf("        Test function not implemented yet.\n");
     list->o.destroy(list);
 }
