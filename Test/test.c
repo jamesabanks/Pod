@@ -35,6 +35,7 @@ char *test_files[] = {
     "test_pod_string",
     "test_pod_list",
     "test_pod_mapping",
+    "test_pod_map",
     NULL
 };
 
