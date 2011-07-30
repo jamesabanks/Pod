@@ -61,6 +61,42 @@ void pod_map_destroy(void *target)
 
 
 
+    // pod_map_assign
+    //
+    // Map a key to a value.  If the key already exists, change the value.  If
+    // the key doesn't exist, create a new mapping with the given key and
+    // value and put it into the map.
+    //
+    // Returns:
+    //      NULL            Key and/or value is NULL or didn't find a matching
+    //                      key (there was no previous value).
+    //      pod_object *    The previous value for the key.
+
+pod_object *pod_map_assign(pod_map *map, pod_string *key, pod_object *value)
+{
+    pod_object *old;
+    pod_mapping *mapping;
+
+    if (key == NULL) return NULL;
+    if (value == NULL) return NULL;
+
+    old = NULL;
+    mapping = pod_map_lookup_mapping(map, key);
+    if (mapping != NULL) {
+        old = mapping->value;
+        mapping->value = value;
+    } else {
+        mapping = pod_mapping_create_with(key, value);
+        mapping->o.n.previous = &map->header;
+        mapping->o.n.next = map->header.next;
+        map->header.next = &mapping->o.n;
+    }
+
+    return old;
+}
+
+
+
     // pod_map_lookup_mapping
     //
     // Traverse the map, looking for a mapping which has a matching key.  A map
@@ -107,6 +143,8 @@ pod_object *pod_map_lookup(pod_map *map, pod_string *key)
     pod_mapping *mapping;
     pod_object *value;
 
+    /* if key is NULL, pod_map_lookup_mapping will return NULL */
+
     value = NULL;
     mapping = pod_map_lookup_mapping(map, key);
     if (mapping != NULL) {
@@ -114,38 +152,6 @@ pod_object *pod_map_lookup(pod_map *map, pod_string *key)
     }
 
     return value;
-}
-
-
-
-    // pod_map_set
-    //
-    // Map a key to a value.  If the key already exists, change the value.  If
-    // the key doesn't exist, create a new mapping with the given key and
-    // value and put it into the map.
-    //
-    // Returns:
-    //      NULL            Key is NULL or didn't find a matching key.
-    //      pod_object *    The previous value for the key.
-
-pod_object *pod_map_set(pod_map *map, pod_string *key, pod_object *value)
-{
-    pod_object *old;
-    pod_mapping *mapping;
-
-    old = NULL;
-    mapping = pod_map_lookup_mapping(map, key);
-    if (mapping != NULL) {
-        old = mapping->value;
-        mapping->value = value;
-    } else if (key != NULL) {
-        mapping = pod_mapping_create_with(key, value);
-        mapping->o.n.previous = &map->header;
-        mapping->o.n.next = map->header.next;
-        map->header.next = &mapping->o.n;
-    }
-
-    return old;
 }
 
 
@@ -162,6 +168,8 @@ pod_object *pod_map_remove(pod_map *map, pod_string *key)
 {
     pod_mapping *mapping;
     pod_object *old;
+
+    /* if key is NULL, pod_map_lookup_mapping will return NULL */
 
     old = NULL;
     mapping = pod_map_lookup_mapping(map, key);
@@ -183,32 +191,9 @@ pod_object *pod_map_remove(pod_map *map, pod_string *key)
     // to the first object in the map.  ('First object' only has meaning within
     // this file, technically speaking.)
 
-void pod_map_interate(pod_map *map)
+void pod_map_iterate(pod_map *map)
 {
     map->current = map->header.next;
-}
-
-
-
-    // pod_map_next
-    //
-    // A companion to pod_map_iterate.  Get the next object in the map.
-    //
-    // Returns:
-    //      NULL            No more mappings exist.
-    //      pod_mapping *   The next mapping
-
-pod_mapping *pod_map_next(pod_map *map)
-{
-    pod_mapping *last;
-
-    last = NULL;
-    if (map->current != &map->header) {
-        last = (pod_mapping *) map->current;
-        map->current = map->current->next;
-    }
-
-    return last;
 }
 
 
@@ -232,4 +217,27 @@ size_t pod_map_size(pod_map *map)
     }
 
     return size;
+}
+
+
+
+    // pod_map_next
+    //
+    // A companion to pod_map_iterate.  Get the next object in the map.
+    //
+    // Returns:
+    //      NULL            No more mappings exist.
+    //      pod_mapping *   The next mapping
+
+pod_mapping *pod_map_next(pod_map *map)
+{
+    pod_mapping *last;
+
+    last = NULL;
+    if (map->current != &map->header) {
+        last = (pod_mapping *) map->current;
+        map->current = map->current->next;
+    }
+
+    return last;
 }

@@ -35,15 +35,15 @@ extern void pod_map_destroy(void *target);
 
     // Other pod_map-related functions
 
+extern pod_object *pod_map_assign(pod_map *map, pod_string *key, pod_object *v);
 extern pod_mapping *pod_map_lookup_mapping(pod_map *map, pod_string *key);
 extern pod_object *pod_map_lookup(pod_map *map, pod_string *key);
-extern pod_object *pod_map_set(pod_map *map, pod_string *key, pod_object *val);
 extern pod_object *pod_map_remove(pod_map *map, pod_string *key);
+extern size_t pod_map_size(pod_map *map);
 
 extern void pod_map_iterate(pod_map *map);
 extern pod_mapping *pod_map_next(pod_map *map);
 
-extern size_t pod_map_size(pod_map *map);
 
 
 
