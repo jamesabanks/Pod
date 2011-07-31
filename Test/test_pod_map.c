@@ -46,6 +46,7 @@ int main(int argc, char *argv)
         pod_string_copy_from_cstring(value[i], test_values[i]);
     }
     error_count += test_create_and_destroy_map();
+    error_count += test_map_define();
     for (i = 0; i < 5; ++i) {
         key[i]->o.destroy(key[i]);
         value[i]->o.destroy(value[i]);
@@ -111,7 +112,42 @@ int test_create_and_destroy_map(void)
     }
     map->o.destroy(map);
 
+    return error_count;
+}
 
+
+
+    // test_map_define
+    //
+    // Returns:
+    //      int     The number of errors found.
+
+int test_map_define(void)
+{
+    int error_count;
+    int i;
+    pod_map *map;
+    pod_object *object;
+    size_t size;
+
+    printf("    test_map_define\n");
+    error_count = 0;
+    map = pod_map_create();
+    for (i = 0; i < 3; ++i) {
+        pod_map_assign(map, key[i], (pod_object *) value[i]);
+        object = pod_map_lookup(map, key[i]);
+        if (object != (pod_object *) value[i]) {
+            ++error_count;
+            printf("        Returned object not equalling key[%d].\n", i);
+            printf("            (expected 0x%p, got 0x%p)\n", value[i], object);
+        }
+        size = pod_map_size(map);
+        if (size != i + 1) {
+            ++error_count;
+            printf("        Size is not correct after defining %d object(s).\n", i);
+            printf("            (expected %d, got %zu)\n", i + 1, size);
+        }
+    }
 
     return error_count;
 }
