@@ -123,6 +123,7 @@ pod_mapping *pod_map_lookup_mapping(pod_map *map, pod_string *key)
             mapping = (pod_mapping *) node;
             break;
         }
+        node = node->next;
     }
 
     return mapping;
@@ -185,19 +186,6 @@ pod_object *pod_map_remove(pod_map *map, pod_string *key)
 
 
 
-    // pod_map_iterate
-    //
-    // Prepare the pod_map for iteration.  That means set the current member
-    // to the first object in the map.  ('First object' only has meaning within
-    // this file, technically speaking.)
-
-void pod_map_iterate(pod_map *map)
-{
-    map->current = map->header.next;
-}
-
-
-
     // pod_map_size
     //
     // Caculate the number of mappings in the map.
@@ -214,9 +202,23 @@ size_t pod_map_size(pod_map *map)
     size = 0;
     while (node != &map->header) {
         ++size;
+        node = node->next;
     }
 
     return size;
+}
+
+
+
+    // pod_map_iterate
+    //
+    // Prepare the pod_map for iteration.  That means set the current member
+    // to the first object in the map.  ('First object' only has meaning within
+    // this file, technically speaking.)
+
+void pod_map_iterate(pod_map *map)
+{
+    map->current = map->header.next;
 }
 
 
