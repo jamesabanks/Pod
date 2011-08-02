@@ -61,7 +61,7 @@ void pod_map_destroy(void *target)
 
 
 
-    // pod_map_assign
+    // pod_map_define
     //
     // Map a key to a value.  If the key already exists, change the value.  If
     // the key doesn't exist, create a new mapping with the given key and
@@ -72,10 +72,11 @@ void pod_map_destroy(void *target)
     //                      key (there was no previous value).
     //      pod_object *    The previous value for the key.
 
-pod_object *pod_map_assign(pod_map *map, pod_string *key, pod_object *value)
+pod_object *pod_map_define(pod_map *map, pod_string *key, pod_object *value)
 {
-    pod_object *old;
     pod_mapping *mapping;
+    pod_node *node;
+    pod_object *old;
 
     if (key == NULL) return NULL;
     if (value == NULL) return NULL;
@@ -86,10 +87,12 @@ pod_object *pod_map_assign(pod_map *map, pod_string *key, pod_object *value)
         old = mapping->value;
         mapping->value = value;
     } else {
+        node = &map->header;
         mapping = pod_mapping_create_with(key, value);
-        mapping->o.n.previous = &map->header;
-        mapping->o.n.next = map->header.next;
-        map->header.next = &mapping->o.n;
+        mapping->o.n.previous = node;
+        mapping->o.n.next = node->next;
+        node->next->previous = &mapping->o.n;
+        node->next = &mapping->o.n;
     }
 
     return old;
@@ -177,6 +180,7 @@ pod_object *pod_map_remove(pod_map *map, pod_string *key)
     if (mapping != NULL) {
         pod_node_remove(&mapping->o.n);
         old = mapping->value;
+        mapping->key = NULL;
         mapping->value = NULL;
         mapping->o.destroy(mapping);
     }
