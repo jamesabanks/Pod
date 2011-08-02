@@ -218,7 +218,7 @@ int test_map_functions(void)
     if (i != size) {
         ++error_count;
         printf("        Did not iterate over 'size' number of mappings.\n");
-        printf("            (expected %d, iterated over %d.", size, i);
+        printf("            (expected %zu, iterated over %d.", size, i);
     }
     /* The state of the map:
         The map should look like this:
@@ -230,7 +230,7 @@ int test_map_functions(void)
     if (size != 4) {
         ++error_count;
         printf("        Pre-remove size wasn't four.\n");
-        printf("            (expected 4, got %d\n", size);
+        printf("            (expected 4, got %zu\n", size);
     }
     for (i = 0; i < 4; i++) {
         j = test_remove[i];
@@ -252,7 +252,7 @@ int test_map_functions(void)
     if (size != 0) {
         ++error_count;
         printf("        Final size wasn't zero.\n");
-        printf("            (expected 0, got %d\n", size);
+        printf("            (expected 0, got %zu\n", size);
     }
 
     return error_count;
