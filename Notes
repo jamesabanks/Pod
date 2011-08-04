@@ -37,7 +37,14 @@ pod_stream_add_char(pod_char_t) -- the lexer
             change state
 
 
-a newline ends a token (and a line, but that doesn't mean anything).
+a newline ends a token (and a line, but that doesn't mean anything).  It clears
+    out the lexer.  Or it doesn't.  The first non-ws character on the next line
+    can be a %.
+
+what if a % is lead or followed by a non-string?  I guess it is a NOP then.
+    What if it is neither lead nor followed by a string.  It is a NOP again.
+    Kinda like a comma operator, only for strings (or not).  So do we need a
+    limit on the number of consecutive '%'?  Should I change '%' to ','?
 
 a ctrl-z (or whatever it was) ends a token.  It also empties the pod stack, so
     unless the stack is empty it will return a pod.
