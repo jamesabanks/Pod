@@ -1,0 +1,54 @@
+1. Introduction to Pod
+    What is Pod (What does Pod mean)
+        Pod is Pod
+    What do you do with Pod
+        Communicate
+        Config files
+        Communication links
+    Why did Pod come to exist (Motivation)
+        Zed
+        Useful
+        Wanted "ad hoc" protocol
+        Didn't find anything really like it
+        History
+            Communicate with subprograms (like X sub-windows)
+            Sick of "one-off" things that were very similar
+            Lisp
+    What is Pod, really (A little more detail).
+        A grammar
+        A config file format
+        A protocol
+    What can you do with Pod
+        Anything
+        Not detailed implementation.  Just ideas.
+    Costs & Benefits
+        Variable length
+        Not fixed on "types" or "classes"
+        Fixed on text
+        Can't just create a single buffer (a la Xlib)
+        Not stuck on single text size
+        Stuck with ANSI (Or is it ANSII), good/bad?
+
+2. Introduction to libpod
+    What is it
+        It's just an implementation of Pod
+        It is a reference implementation (is that correct?)
+            test cases/framework
+        Why C
+            I know it pretty well
+            I'm a bit of a control freak.  Don't like behind the back behavior.
+            Core language of Unix kernels
+            Why not?
+    What it is not
+        If you implement Pod in another language, make it native.  Then use the
+            test cases to verify conformant behavior.
+    How to use it
+        Receive loop (character at a time)
+        Get pod, interpret, destroy
+        Build pod, send, destroy
+        Sending?
+    (Lots of) Examples
+
+3. Grammar
+
+4. libpod reference
