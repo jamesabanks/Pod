@@ -5,18 +5,24 @@
 
 
 
-    // TODO pod_blurb needs work
+enum stream_state {
+    stream_empty
+    stream_in_ordered
+    stream_in_unordered
+    stream_in_string
+    stream_in_quoted
+    stream_in_blurb
+    stream_escaped
+}
 
-#define POD_BLURB_TYPE 0x0b0004
-
-struct pod_blurb {
-    struct pod_object o;
-    size
-    endianess
-    word-size
-    pod_char_t buffer[];
-};
-
+enum pod_tokens {
+    start_ordered
+    end_ordered
+    start_unordered
+    end_unordered
+    string
+    mapping
+}
 
 
 typedef int pod_token_t;
@@ -33,8 +39,10 @@ typedef struct pod_stream pod_stream;
 
 struct pod_stream {
     int state;
-
+    pod_string *buffer;
     int max_string_size;  // maximum string size
+    int warn_string_size;
+
     int max_pod_size;     // maximum pod size
     int max_blurb_size;   // maximum blurb size
     int max_pod_depth;    // maximum pod depth
