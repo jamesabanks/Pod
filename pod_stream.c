@@ -1,6 +1,21 @@
 #include <pod_stream.h>
 
 
+{ state,    char,   token,          final state }
+
+{ empty,    '{',    begin_list,     in_list }
+{ empty,    '}',    end_list,       empty (warn) }
+{ empty,    '<',    begin_map,      in_map }
+{ empty,    '>',    end_map,        empty }
+{ empty,    '[',    begin_blurb,    in_blurb (size) }
+{ empty,    ']',    end_blurb,      empty }
+{ empty,    '"',    begin_quoted,   in_quoted }
+{ empty,    '=',    equals,         empty (warn) }
+{ empty,    ws,     none,           empty }
+{ empty,    nl|cr,  none,           empty }
+{ empty,    '+',    got_concat,     got_concat }
+{ empty,    '\',    got_escape,     got_escape }
+{ empty,    else,   begin_string,   in_string }
 
 void pod_stream_add_char(
     pod_stream *stream,
