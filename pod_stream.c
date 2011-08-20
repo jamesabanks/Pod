@@ -1,6 +1,30 @@
 #include <pod_stream.h>
 
 
+{ state,    char,   pre-terminal,   post-terminal,  next_state }
+
+  initial   '{'     yes             yes             initial
+                    if have string, send token(string)
+                    send token(begin_list)
+                    return to initial state
+  initial   '+'     no              no              initial
+  initial   ' '|\t  no              no              initial
+  initial   nl|cr   yes             no              initial
+  initial   '\'     depends         no              in_string
+  initial   else    depends         no              in_string
+
+    make escape sequences \blah\
+        \\ becomes \
+        \126\ becomes ~
+        \x7e\ becomes ~
+        \n\ becomes nl
+        etc.
+
+    if nl|cr causes the current string to be sent to the parser, then + must
+    be a parser thing, not a lexer thing because concatenation must be able to
+    combine strings on multiple lines.  That makes determining when to send a
+    token much easier.
+  
 { state,    char,   token,          final state }
 
 { empty,    '{',    begin_list,     in_list }
