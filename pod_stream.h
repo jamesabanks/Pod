@@ -39,6 +39,7 @@ typedef struct pod_stream pod_stream;
 
 struct pod_stream {
     int state;
+    int have_concat;
     pod_string *buffer;
     int max_string_size;  // maximum string size
     int warn_string_size;
