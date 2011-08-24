@@ -117,4 +117,30 @@ Try blurb = [length(hex) L/B word-size(hex) data]
     how do we know the native endianess?
     have I asked this already?
 
+Attempt at a grammer:
+    P ->        P P
+    P ->        { P }
+    P ->        < P >
+    P ->        string
+    string ->   simple              // Scanner
+    string ->   "(blah blah blah)"  // Scanner
+    string ->   "(blah bl\EOL\      // Scanner
+    string ->   string + string     // Scanner
+    P ->        [endianess wordsize datalength data] 
+    P ->        string = P
+    EOL ->      '\n'
+    EOL ->      '\r'
+    WS ->       ' '
+    WS ->       '\t'
 
+Try #2
+    stream      ->      object*
+    object      ->      string
+                ->      list
+                ->      mapping
+                ->      map
+                ->      blurb
+    list        ->      { object* }
+    mapping     ->      string = object
+    map         ->      < mapping* >
+    blurb       ->      [ BbLl hexnumber hexnumber octet+ ]
