@@ -5,16 +5,6 @@
 
 
 
-enum stream_state {
-    stream_empty
-    stream_in_ordered
-    stream_in_unordered
-    stream_in_string
-    stream_in_quoted
-    stream_in_blurb
-    stream_escaped
-}
-
 enum pod_tokens {
     start_ordered
     end_ordered
