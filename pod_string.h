@@ -84,7 +84,9 @@ extern void pod_string_copy_to_cstring(char *to, pod_string *from);
 extern pod_string *pod_string_dup(pod_string *string);
 extern pod_string *pod_string_dup_text(pod_string *string);
 
-
+static inline int pod_string_is_empty(pod_string *string)
+{
+    return (string->used == 0);
+}
 
 #endif /* INCLUDE_POD_STRING_H */
-
