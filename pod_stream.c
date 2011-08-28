@@ -43,47 +43,85 @@ void pod_stream_add_char(
     state = next_state;
 }
 
-void pod_stream_add_char(
-    pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
-    int error
-)
-{
-    what do we do given c and the current state?
-    what is the next state based on c?
-    pass on a token?
-    state = new_state?
 
-    if ((stream->state == stream_in_string || (stream->state == stream_in_quoted)) {
-        (put a name on the stream for better error tracking?)
-        if we're over max_string_size, return error
-        if we're over warn_string_size, emit warning
-            
-    }
-    switch (stream->state) {
-        case stream_empty:
-            switch (c) {
-                case '{':
-                    // if we have a string in the buffer, call add_token for it.
-                    // don't add to buffer, buffer should be empty
-                    // add_token(start_ordered)
-                    // new_state = stream_in_ordered
-                    break;
-                case '}':
-                    // if we have a string in the buffer, call add_token for it.
-                    // don't add to buffer, buffer should be empty  
-                    // add_token(end_ordered), should get warning
-                    // new_state = stream_empty (no change)
-                    break;
-                case '"':
-                    new_state = stream_in_quoted;
-                case '<':
-                case '>':
-                (?) case ',':
-                        
-            }
-        case stream_in_ordered:
+
+int add_token(pod_stream *stream, int token, pod_object **object)
+{
+    pod_string *string;
+    pod_map *map;
+
+    switch (token) {
+        case string:
+            string = pod_string_dup_text(stream->buffer);
+            pod_string_clear(stream->buffer);
+            stream->have_concate = false;
+            if already have a string:
+                Append it to current pod_object or if there is no current
+                pod_object, assign it to object.
+            put string in current_string position
+            break;
+        case begin_map:
+            if already have a string:
+                Append it to current pod_object or if there is no current
+                pod_object, assign it to object.
+            map = pod_create_map();
+            push map on current pod_object stack
+            break;
+        case equals:
+            if NOT already have a string:
+                warn
+                create null string
+            pod_create_mapping();
+            mapping->key = old_string (or null string);
+            push mapping on current pod_object stack or if there is nothing on
+                the current stack, assign it to object an return it.
+            break;
+        case end_map:
+            if already have a string
+                append it to current top of stack.  if the stack is empty,
+                assign it to object to return it.
+            if the top of the current object stack is not a map
+                warn
+                ignore
+            else
+                remove from top of stack
+                append to new (and previous :) top of stack
+                if there is no new top of stack (ie, the stack is empty),
+                    assign it to object and return it
+            break;
+
+        case begin_blurb:
+        case end_blurb:
+            break;
+
+        case begin_list:
+            if already have a string
+                append it to current top of stack.  if the stack is empty,
+                assign it to object to return it.
+            list = pod_list_create()
+            push list on current stack
+            break;
+        case end_list:
+            if already have a string
+                append it to current top of stack.  if the stack is empty,
+                assign it to object to return it.
+            if the top of stack is not a list
+                warn
+                ignore
+            else
+                remove from top of stack
+                append to new top of stack
+                if there is no new top of stack (ie, the stack is empty),
+                    assign it to object and return it.
+            break;
+        case pod_sync:
+            if already have a string
+                append it to current top of stack.  if the stack is empty,
+                assign it to object to return it.
+            if stack is not empty
+                pod the top of stack
+                append to new top of stack
+                repeat until empty
+                assign to object and return it.
+            break;
         default:
-    }
-}

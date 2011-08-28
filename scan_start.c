@@ -31,65 +31,73 @@ if char is '"', '\\', or other
 state = new_state
 */
 
-int scan_start(pod_stream *stream, pod_char_t c, int *next_state)
+int scan_start(
+    pod_stream *stream,
+    pod_char_t c,
+    pod_object **object,
+    int *next_state
+)
 {
+    int have_string;
     int state;
     int warning;
 
+    have_string = ! pod_stream_is_empty(stream->buffer);
     state = stream_start;
     warning = 0;
     switch (c) {
-        case '\t': // Nothing to do.  Skip.
+        case '\t': // Do nothing.
         case '\n':
         case '\r':
         case ' ':
             break;
         case '"':  // Start a quoted string
-            if ((have_concat == false) && (have_string)) { add_token(string); }
+            if ((!stream->have_concat) && (have_string)) {
+                add_token(stream, stream_string, object);
+            }
             state = stream_quoted;
             break;
         case '+':
-            have_concat = true;
+            stream->have_concat = true;
             break;
         case '<':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(begin_map);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_begin_map, object);
             break;
         case '=':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(equals);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_equals, object);
             break;
         case '>':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(end_map);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_end_map, object);
             break;
         case '[':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(begin_blurb);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_begin_blurb, object);
             break;
         case '\\':
-            if ((have_concat == false) && (have_string)) { add_token(string); }
+            if ((!stream->have_concat) && (have_string)) {
+                add_token(stream, stream_string, object);
+            }
             state = stream_string_escape;
             break;
         case ']':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(end_blurb);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_end_blurb);
             // TODO Shouldn't get ']' in start state.
             break;
         case '{':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(begin_list);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_begin_list, object);
             break;
         case '}':
-            have_concat = false;
-            if (have_string) { add_token(string); }
-            add_token(end_list);
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_end_list, object);
+            break;
+        case '':
+            if (have_string) { add_token(stream, stream_string, object); }
+            add_token(stream, stream_pod_sync, object);
             break;
         default:
             if (c < 32) {

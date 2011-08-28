@@ -5,20 +5,6 @@
 
 
 
-enum pod_tokens {
-    start_ordered
-    end_ordered
-    start_unordered
-    end_unordered
-    string
-    mapping
-}
-
-
-typedef int pod_token_t;
-
-
-
 // Next is pod_stream.  This is a struct that holds information about what to
 // accept from a data source or send to a data sink.
 
@@ -28,18 +14,22 @@ typedef struct pod_stream pod_stream;
 
 
 struct pod_stream {
+    int total_characters; // total characters received, from Pod's POV
+    int char_num;         // current character within line, starting at zero
+    int line_num;         // current line number, starting at zero
+
     int state;
+    int string_size;
     int have_concat;
-    pod_string *buffer;
-    int max_string_size;  // maximum string size
     int warn_string_size;
+    int max_string_size;
+    pod_string *buffer;
+
+    int escape_state;
 
     int max_pod_size;     // maximum pod size
-    int max_blurb_size;   // maximum blurb size
     int max_pod_depth;    // maximum pod depth
-    int total_characters; // total characters received, from Pod's POV
-    int line_num;         // current line number, starting at zero
-    int char_num;         // current character within line, starting at zero
+    int max_blurb_size;   // maximum blurb size
     int pod_timeout;      // maximum wait time reading within a pod
     int inter_timeout;    // maximum wait time between pods (0 = indefinite)
     int total_errors;     // number of errors since first started reading

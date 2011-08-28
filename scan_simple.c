@@ -1,4 +1,5 @@
-
+#include <scanner.h>
+/*
     {   '\t',   0,              stream_start }
     {   '\n',   0,              stream_start }
     {   '\r',   0,              stream_start }
@@ -29,8 +30,14 @@ if char is '"'
 if char is other
     add to string
 state = new_state
+*/
 
-int scan_simple(pod_stream *stream, pod_char_t c, int *next_state)
+int scan_simple(
+    pod_stream *stream,
+    pod_char_t c,
+    pod_object **object,
+    int *next_state
+)
 {
     int state;
     int warning;
@@ -45,7 +52,7 @@ int scan_simple(pod_stream *stream, pod_char_t c, int *next_state)
             state = stream_start
             break;
         case '"':  // A quote ends the simple string and starts a quoted string.
-            add_token(string);
+            add_token(stream, stream_string, object);
             state = stream_quoted;
             break;
         case '+': // A concat mark (currently '+') ends the simple string
@@ -53,40 +60,44 @@ int scan_simple(pod_stream *stream, pod_char_t c, int *next_state)
             state = stream_start;
             break;
         case '<':
-            add_token(string);
-            add_token(begin_map);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_begin_map, object);
             state = stream_start;
             break;
         case '=':
-            add_token(string);
-            add_token(equals);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_equals, object);
             state = stream_start;
             break;
         case '>':
-            add_token(string);
-            add_token(end_map);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_end_map, object);
             state = stream_start;
             break;
         case '[':
-            add_token(string);
-            add_token(begin_blurb);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_begin_blurb, object);
             state = stream_start;
             break;
         case '\\':
             state = stream_simple_escape;
             break;
         case ']':
-            add_token(string);
-            add_token(end_blurb);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_end_blurb, object);
             // TODO Shouldn't get ']' in simple string state.
             break;
         case '{':
-            add_token(string);
-            add_token(begin_list);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_begin_list, object);
             break;
         case '}':
-            add_token(string);
-            add_token(end_list);
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_end_list, object);
+            break;
+        case '':
+            add_token(stream, stream_string, object);
+            add_token(stream, stream_pod_sync, object);
             break;
         default:
             if (c < 32) {

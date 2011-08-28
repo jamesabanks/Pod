@@ -8,36 +8,61 @@
     {   other,  0,              scan_quoted }
     { other<32, 0,              scan_quoted, warn }
 
-(remember, state is quoted)
+(remember, state is blah_escaped)
 find character in list
 if char is other
     add to string
 state = new_state
 */
 
-int scan_quoted(
+int scan_escape(
     pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
     int *next_state
 )
 {
     int state;
     int warning;
 
-    state = stream_quoted;
     warning = 0;
     switch (c) {
-        case '\n': // Ends a quoted string
+        case '\t':
+        case '\n':
         case '\r':
             state = stream_start;
             break;
-        case '"':  // A quote ends the quoted string.
-            state = stream_start;
+        case ' ':
             break;
         case '\\':
-            state = stream_quoted_escape;
+            state &= stream_escape_mask;
             break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+            break;
+        case 't':
+        case 'n':
+        case 'r':
+            break;
+
         case '':
             add_token(stream, stream_string, object);
             add_token(stream, stream_pod_sync, object);
