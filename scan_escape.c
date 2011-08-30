@@ -17,6 +17,7 @@ state = new_state
 
 int scan_escape(
     pod_stream *stream,
+    pod_char_t c;
     int *next_state
 )
 {
@@ -25,15 +26,9 @@ int scan_escape(
 
     warning = 0;
     switch (c) {
-        case '\t':
         case '\n':
         case '\r':
             state = stream_start;
-            break;
-        case ' ':
-            break;
-        case '\\':
-            state &= stream_escape_mask;
             break;
         case '0':
         case '1':
@@ -45,24 +40,42 @@ int scan_escape(
         case '7':
         case '8':
         case '9':
+            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            digit = (c - '0') & 0xf;
+            number *= 0x10;
+            number |= digit;
+            break;
         case 'A':
         case 'B':
         case 'C':
         case 'D':
         case 'E':
         case 'F':
+            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            digit = (10 + (c - 'A')) & 0xf
+            number *= 0x10;
+            number |= digit;
+            break;
         case 'a':
         case 'b':
         case 'c':
         case 'd':
         case 'e':
         case 'f':
+            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            digit = (10 + (c - 'a')) & 0xf;
+            number *= 0x10;
+            number |= digit;
             break;
         case 't':
         case 'n':
         case 'r':
+        case ' ':
+        case '\\':
+        case '"':
+        case anything else
+            state &= stream_escape_mask;
             break;
-
         case '':
             add_token(stream, stream_string, object);
             add_token(stream, stream_pod_sync, object);
