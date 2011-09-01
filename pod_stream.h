@@ -26,6 +26,10 @@ struct pod_stream {
     pod_string *buffer;
 
     int escape_state;
+    int escape_number;
+    int escape_size;
+    int escape_max_size;    // = sizeof(pod_char_t) * 8;
+    pod_char_t escape_value;
 
     int max_pod_size;     // maximum pod size
     int max_pod_depth;    // maximum pod depth

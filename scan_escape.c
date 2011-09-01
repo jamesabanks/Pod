@@ -1,33 +1,27 @@
 #include <scanner.h>
 
-/*
-    {   '\n',   0,              scan_start }
-    {   '\r',   0               scan_start }
-    {   '"',    0,              scan_start }
-    {   '\\',   0,              scan_quoted_escape }
-    {   other,  0,              scan_quoted }
-    { other<32, 0,              scan_quoted, warn }
 
-(remember, state is blah_escaped)
-find character in list
-if char is other
-    add to string
-state = new_state
-*/
 
-int scan_escape(
-    pod_stream *stream,
-    pod_char_t c;
-    int *next_state
-)
+// At this point I have the leading backslash.  I am getting the escaped
+// character, or the first character of the escaped hex number.
+
+int scan_escape(pod_stream *stream, pod_char_t c)
 {
-    int state;
+    pod_char_t digit;
     int warning;
 
     warning = 0;
     switch (c) {
-        case '\n':
-        case '\r':
+        case '\n': // Unexpected end
+        case '\r': // Unexpected end
+        case '': // Unexpected end
+            // There is no escape character, and the token ends.
+            if (!pod_string_is_empty(stream->buffer) {
+                add_token(stream, stream_string, object);
+            }
+            if (c == '') {
+                add_token(stream, stream_pod_sync, object);
+            }
             state = stream_start;
             break;
         case '0':
@@ -68,29 +62,28 @@ int scan_escape(
             number |= digit;
             break;
         case 't':
-        case 'n':
-        case 'r':
-        case ' ':
-        case '\\':
-        case '"':
-        case anything else
-            state &= stream_escape_mask;
+            pod_string_append_char(stream->buffer, '\t');
+            stream->state &= stream_state_mask;
             break;
-        case '':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_pod_sync, object);
-            state = stream_start;
+        case 'n':
+            pod_string_append_char(stream->buffer, '\n');
+            stream->state &= stream_state_mask;
+            break;
+        case 'r':
+            pod_string_append_char(stream->buffer, '\r');
+            stream->state &= stream_state_mask;
             break;
         default:
             if (c < 32) {
                 // TODO warn, illegal char (?).  What about non-printing
                 // characters that are above 31?
+                warning = 1;
             } else {
                 pod_string_add_char(stream->buffer, c);
+                stream->state &= stream->state & stream_state_mask;
             }
             break;
     }
-    *next_state = state;
 
     return warning;
 }
