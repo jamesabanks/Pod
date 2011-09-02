@@ -7,7 +7,6 @@
 
 int scan_escape(pod_stream *stream, pod_char_t c)
 {
-    pod_char_t digit;
     int warning;
 
     warning = 0;
@@ -35,9 +34,7 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case '8':
         case '9':
             state = (stream->state & stream_state_mask) | stream_escape_hex;
-            digit = (c - '0') & 0xf;
-            number *= 0x10;
-            number |= digit;
+            stream->escape_value = (c - '0') & 0xf;
             break;
         case 'A':
         case 'B':
@@ -46,9 +43,7 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case 'E':
         case 'F':
             state = (stream->state & stream_state_mask) | stream_escape_hex;
-            digit = (10 + (c - 'A')) & 0xf
-            number *= 0x10;
-            number |= digit;
+            stream->escape_value = (10 + (c - 'A')) & 0xf
             break;
         case 'a':
         case 'b':
@@ -57,9 +52,7 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case 'e':
         case 'f':
             state = (stream->state & stream_state_mask) | stream_escape_hex;
-            digit = (10 + (c - 'a')) & 0xf;
-            number *= 0x10;
-            number |= digit;
+            stream->escape_value = (10 + (c - 'a')) & 0xf;
             break;
         case 't':
             pod_string_append_char(stream->buffer, '\t');
