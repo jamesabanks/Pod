@@ -48,6 +48,7 @@ int scan_escape_hex(pod_stream *stream, pod_char_t c)
                     case '9':
                         digit = (c - '0') & 0xf;
                         stream->escape_value *= 0x10;
+                        stream->escape_value |= digit;
                         break;
                     case 'A':
                     case 'B':
