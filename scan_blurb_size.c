@@ -2,7 +2,7 @@
 
 
 
-// At this point I have an open square bracket.  I am getting the first
+// At this point I have a left square bracket.  I am getting the first
 // character of the blurb, which may be space or a hex digit.
 
 int scan_blurb_presize(pod_stream *stream, pod_char_t c)
@@ -13,12 +13,17 @@ int scan_blurb_presize(pod_stream *stream, pod_char_t c)
     switch (c) {
         case '\n':
         case '\r':
+            // new line.
+            // ignore
+            break;
         case '':
+        case ']':
             // unexpected end
             break;
-        case ' ':
         case '\t':
+        case ' ':
             // whitespace
+            // ignore
             break;
         case '0':
         case '1':
@@ -30,7 +35,8 @@ int scan_blurb_presize(pod_stream *stream, pod_char_t c)
         case '7':
         case '8':
         case '9':
-            state = (stream->state & stream_state_mask) | stream_blurb_size;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_blurb_size;
             stream->blurb_size = (c - '0') & 0xf;
             break;
         case 'A':
@@ -39,7 +45,8 @@ int scan_blurb_presize(pod_stream *stream, pod_char_t c)
         case 'D':
         case 'E':
         case 'F':
-            state = (stream->state & stream_state_mask) | stream_blurb_size;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_blurb_size;
             stream->blurb_size = (10 + (c - 'A')) & 0xf
             break;
         case 'a':
@@ -48,7 +55,8 @@ int scan_blurb_presize(pod_stream *stream, pod_char_t c)
         case 'd':
         case 'e':
         case 'f':
-            state = (stream->state & stream_state_mask) | stream_blurb_size;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_blurb_size;
             stream_blurb_size = (10 + (c - 'a')) & 0xf;
             break;
         default:
@@ -61,6 +69,8 @@ int scan_blurb_presize(pod_stream *stream, pod_char_t c)
 
 
 
+// At this point I have the first digit of the blurb size.  I am looking for
+// further digits, a space, or a right-bracket (']').
 int scan_blurb_size(pod_stream *stream, pod_char_t c)
 {
     pod_char_t digit;
@@ -77,11 +87,14 @@ int scan_blurb_size(pod_stream *stream, pod_char_t c)
             break;
         case ' ':
         case '\t':
-            state = (stream->state & stream_state_mask) | stream_blurb_size;
-            // whitespace
+            stream->state &= stream_state_mask;
+            stream->state |= stream_blurb_post_size;
+            // whitespace - size has ended.
             break;
         case ']':
             // blurb ended
+            stream->state &= stream_state_mask;
+            stream->state |= stream_blurb_data;
             break;
         case '0':
         case '1':
