@@ -12,7 +12,7 @@ enum boolean {
 
 enum stream_state {
     stream_state_mask = 0xf0,           /* binary  1111 0000 */
-    stream_escape_mask = 0x0f,          /* binary  0000 1111 */
+    stream_escape_mask = 0x0f,          /* binary  0000 1100 */
     stream_escape_hex = 0x0c,
     stream_start = 0,
     stream_simple = 0x10,               /* binary  0001 0000 */
@@ -21,7 +21,14 @@ enum stream_state {
     stream_quoted = 0x20,               /* binary  0010 0000 */
     stream_quoted_escape = 0x28,        /* binary  0010 1000 */
     stream_quoted_escape_hex = 0x2c,    /* binary  0010 1100 */
-    stream_blurb = 0x30                 /* binary  0011 0000 */
+    stream_blurb = 0x30,                /* binary  0011 0000 */
+    stream_blurb_pre_size = 0x31,       /* binary  0011 0001 */
+    stream_blurb_size = 0x32,           /* binary  0011 0010 */
+    stream_blurb_post_size = 0x33,      /* binary  0011 0011 */
+    stream_blurb_data = 0x34,           /* binary  0011 0100 */
+    stream_warn_escape_prob = 0x40,
+    stream_warn_line_prob = 0x41,
+    stream_warn_pod_prob = 0x42
 };
 
 

@@ -2,10 +2,15 @@
 
 
 
-// At this point I have the leading backslash.  I am getting the escaped
-// character, or the first character of the escaped hex number.
+    // scan_escape
+    //
+    // At this point I have the leading backslash.  I am getting the escaped
+    // character, or the first character of the escaped hex number.
+    //
+    // Returns:
+    //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_escape(pod_stream *stream, pod_char_t c)
+int scan_escape(pod_stream *stream, pod_char_t c, pod_object *object)
 {
     int warning;
 
@@ -21,7 +26,7 @@ int scan_escape(pod_stream *stream, pod_char_t c)
             if (c == '') {
                 add_token(stream, stream_pod_sync, object);
             }
-            state = stream_start;
+            stream->state = stream_start;
             break;
         case '0':
         case '1':
@@ -33,7 +38,8 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case '7':
         case '8':
         case '9':
-            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_escape_hex;
             stream->escape_value = (c - '0') & 0xf;
             break;
         case 'A':
@@ -42,7 +48,8 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case 'D':
         case 'E':
         case 'F':
-            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_escape_hex;
             stream->escape_value = (10 + (c - 'A')) & 0xf
             break;
         case 'a':
@@ -51,7 +58,8 @@ int scan_escape(pod_stream *stream, pod_char_t c)
         case 'd':
         case 'e':
         case 'f':
-            state = (stream->state & stream_state_mask) | stream_escape_hex;
+            stream->state &= stream_state_mask;
+            stream->state |= stream_escape_hex;
             stream->escape_value = (10 + (c - 'a')) & 0xf;
             break;
         case 't':
@@ -70,10 +78,11 @@ int scan_escape(pod_stream *stream, pod_char_t c)
             if (c < 32) {
                 // TODO warn, illegal char (?).  What about non-printing
                 // characters that are above 31?
+                // Syntax error: got control (non-printing, < 32) character.
                 warning = 1;
             } else {
                 pod_string_add_char(stream->buffer, c);
-                stream->state &= stream->state & stream_state_mask;
+                stream->state &= stream_state_mask;
             }
             break;
     }
