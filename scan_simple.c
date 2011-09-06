@@ -32,60 +32,62 @@ if char is other
 state = new_state
 */
 
-int scan_simple(
-    pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
-    int *next_state
-)
+
+
+    // scan_simple
+    //
+    // At this point, Pod has the first character of a simple string.
+    // 
+    // Returns:
+    //      int     The error id of any problem that occurred (0 = no error)
+
+int scan_simple(pod_stream *stream, pod_char_t c, pod_object **object)
 {
-    int state;
     int warning;
 
-    state = stream_simple;
     warning = 0;
     switch (c) {
         case '\t': // Ends a simple string
         case '\n':
         case '\r':
         case ' ':
-            state = stream_start
+            stream->state = stream_start
             break;
         case '"':  // A quote ends the simple string and starts a quoted string.
             add_token(stream, stream_string, object);
-            state = stream_quoted;
+            stream->state = stream_quoted;
             break;
         case '+': // A concat mark (currently '+') ends the simple string
             have_concat = true;
-            state = stream_start;
+            stream->state = stream_start;
             break;
         case '<':
             add_token(stream, stream_string, object);
             add_token(stream, stream_begin_map, object);
-            state = stream_start;
+            stream->state = stream_start;
             break;
         case '=':
             add_token(stream, stream_string, object);
             add_token(stream, stream_equals, object);
-            state = stream_start;
+            stream->state = stream_start;
             break;
         case '>':
             add_token(stream, stream_string, object);
             add_token(stream, stream_end_map, object);
-            state = stream_start;
+            stream->state = stream_start;
             break;
         case '[':
             add_token(stream, stream_string, object);
-            add_token(stream, stream_begin_blurb, object);
-            state = stream_start;
+            stream->state = stream_blurb_pre_size;
             break;
         case '\\':
-            state = stream_simple_escape;
+            stream->state = stream_simple_escape;
             break;
         case ']':
             add_token(stream, stream_string, object);
-            add_token(stream, stream_end_blurb, object);
-            // TODO Shouldn't get ']' in simple string state.
+            stream->state = stream_start;
+            // Syntax error: extraneous close bracket.
+            warning = 1;
             break;
         case '{':
             add_token(stream, stream_string, object);
@@ -103,12 +105,12 @@ int scan_simple(
             if (c < 32) {
                 // TODO warn, illegal char (?).  What about non-printing
                 // characters that are above 31?
+                warning = 1;
             } else {
                 pod_string_add_char(stream->buffer, c);
             }
             break;
     }
-    *next_state = state;
 
     return warning;
 }

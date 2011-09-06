@@ -4,13 +4,13 @@
 
     // scan_blurb_pre_size
     //
-    // At this point I have a left square bracket.  The next character should
+    // At this point, Pod has a left square bracket.  The next character should
     // be a whitespace or a hex digit.
     //
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_blurb_pre_size(pod_stream *stream, pod_char_t c, pod_object *object)
+int scan_blurb_pre_size(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     int warning;
 
@@ -74,13 +74,13 @@ int scan_blurb_pre_size(pod_stream *stream, pod_char_t c, pod_object *object)
 
     // scan_blurb_size
     //
-    // At this point Pod has the first digit of the blurb size.  Pod is now
+    // At this point, Pod has the first digit of the blurb size.  Pod is now
     // looking for further hex digits, a space, or a right-bracket (']').
     //
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_blurb_size(pod_stream *stream, pod_char_t c, pod_object *object)
+int scan_blurb_size(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     pod_char_t digit;
     int warning;
@@ -164,7 +164,7 @@ int scan_blurb_size(pod_stream *stream, pod_char_t c, pod_object *object)
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_blurb_post_size(pod_stream *stream, pod_char_t c, pod_object *object)
+int scan_blurb_post_size(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     int warning;
 

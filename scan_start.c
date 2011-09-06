@@ -1,49 +1,20 @@
-/*
-        'c'       token         next state
-    {   '\t',     0,            stream_start } // tab
-    {   '\n',     0,            stream_start } // new line
-    {   '\r',     0,            stream_start } // carriage return
-    {   ' ',      0,            stream_start } // space
+#include <scanner.h>
 
-    {   '"',      0,            stream_quoted }
-    {   '+',      0,            stream_start }
-    {   '<',      begin_map,    stream_start }
-    {   '=',      equals,       stream_start }
-    {   '>',      end_map,      stream_start }
-    {   '[',      begin_blurb,  stream_blurb }
-    {   '\\',     0,            stream_string_escape }
-    {   ']',      end_blurb,    stream_start, warn }
-    {   '{',      begin_list,   stream_start }
-    {   '}',      end_list,     stream_start }
 
-    { other<32, 0,              stream_start, warn }
-    { other,    0,              stream_string }
 
-if char is '+', set have_concat to true
-else if char sends token
-    set have_concat to false
-    if there is a string send(string)
-    send(token)
-if char is '"', '\\', or other
-    if have_concat is false and there is a string
-        send(string)
-    if char is other, add to string
-state = new_state
-*/
+    // scan_start
+    // 
+    // At this point, Pod has nothing.
+    //
+    // Returns:
+    //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_start(
-    pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
-    int *next_state
-)
+int scan_start(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     int have_string;
-    int state;
     int warning;
 
     have_string = ! pod_stream_is_empty(stream->buffer);
-    state = stream_start;
     warning = 0;
     switch (c) {
         case '\t': // Do nothing.
@@ -55,7 +26,7 @@ int scan_start(
             if ((!stream->have_concat) && (have_string)) {
                 add_token(stream, stream_string, object);
             }
-            state = stream_quoted;
+            stream->state = stream_quoted;
             break;
         case '+':
             stream->have_concat = true;
@@ -86,6 +57,7 @@ int scan_start(
             if (have_string) { add_token(stream, stream_string, object); }
             add_token(stream, stream_end_blurb);
             // TODO Shouldn't get ']' in start state.
+            warning = 1;
             break;
         case '{':
             if (have_string) { add_token(stream, stream_string, object); }
@@ -103,13 +75,13 @@ int scan_start(
             if (c < 32) {
                 // TODO warn, illegal char (?).  What about non-printing
                 // characters that are above 31?
+                warning = 1;
             } else {
                 pod_string_add_char(stream->buffer, c);
                 state = stream_simple;
             }
             break;
     }
-    *next_state = state;
 
     return warning;
 }

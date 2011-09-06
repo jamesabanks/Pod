@@ -13,7 +13,7 @@
 // How do I keep track of how many digits I have?  How many digits
 // should I allow?  Put them in the stream variable, too.
 
-int scan_escape_hex(pod_stream *stream, pod_char_t c, pod_object *object)
+int scan_escape_hex(pod_stream *stream, pod_char_t c)
 {
     pod_char_t digit;
     int warning;

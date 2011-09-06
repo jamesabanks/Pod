@@ -10,7 +10,7 @@
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_escape(pod_stream *stream, pod_char_t c, pod_object *object)
+int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     int warning;
 

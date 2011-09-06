@@ -10,7 +10,7 @@ enum boolean {
 
 
 
-enum stream_state {
+enum pod_stream_state {
     stream_state_mask = 0xf0,           /* binary  1111 0000 */
     stream_escape_mask = 0x0f,          /* binary  0000 1100 */
     stream_escape_hex = 0x0c,
@@ -33,7 +33,7 @@ enum stream_state {
 
 
 
-enum stream_token {
+enum pod_stream_token {
     token_string,
     token_begin_map,
     token_equals,
