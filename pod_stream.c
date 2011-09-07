@@ -1,46 +1,90 @@
-#include <pod_stream.h>
+#include "scanner.h"
+#include "pod_stream.h"
 
 
 
-void pod_stream_add_char(
-    pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
-    int *error
-)
+    // pod_stream_add_char
+    //
+    // Got sufficient input to constitute a character and have coverted it to a
+    // pod_char_t.
+    //
+    // Returns:
+    //      int     The error id of any problem that occurred (0 = no error)
+
+int pod_stream_add_char(pod_stream *stream, pod_char_t c, pod_object **object)
 {
-    if (stream->state & lexer_escape_mask) {
-        (*error) = lexer_handle_escape(c, &replace, &replacement, &finished);
-        if (replace) {
-            buffer->add_char(replacement);
-        }
-        if (finished) {
-            state = next_state & lexer_state_mask;
-        }
-    } else {
-        switch (stream->state) {
-            case lexer_initial:
-                lexer_handle_initial(stream, c, &next_state);
-                break;
-            case lexer_string:
-                lexer_handle_string(stream, c, &finish_string, &send_token, &next_state);
-                break;
-            case lexer_quoted:
-                lexer_handle_quoted(stream, c, &finish_string, &send_token, &next_state);
-            case lexer_blurb:
-                lexer_handle_blurb(stream, c, &next_state);
-                state = next_state;
-            default:
-                error;
+    int warning;
+
+    ++stream->total_characters;
+    if (stream->total_warnings >= 0) {
+        if (stream->total_warnings >= stream_max_warnings) {
+            // return an error that the stream is ignoring any further input
         }
     }
-    if (finish_string) {
-        send_parse_token(string);
+    warning = 0;
+    switch (stream->state) {
+        case stream_start:
+            warning = scan_start(stream, c, object);
+            break;
+        case stream_simple:
+            warning = scan_simple(stream, c, object);
+            break;
+        case stream_simple_escape:
+            warning = scan_escape(stream, c, object);
+            break;
+        case stream_simple_escape_hex:
+            warning = scan_escape_hex(stream, c, object);
+            break;
+        case stream_quoted:
+            warning = scan_quoted(stream, c, object);
+            break;
+        case stream_quoted_escape:
+            warning = scan_escape(stream, c, object);
+            break;
+        case stream_quoted_escape_hex:
+            warning = scan_escape_hex(stream, c, object);
+            break;
+        case stream_blurb:
+        case stream_blurb_pre_size:
+            warning = scan_blurb_pre_size(stream, c, object);
+            break;
+        case stream_blurb_size:
+            warning = scan_blurb_size(stream, c, object);
+            break;
+        case stream_blurb_post_size:
+            warning = scan_blurb_post_size(stream, c, object);
+            break;
+        case stream_end_escape:
+            if (c == '\\') {
+                stream->state = stream_start;
+            }
+            break;
+        case stream_end_line:
+            if (c == '\n' || c == '\r') {
+                stream->state = stream_start;
+            }
+            break;
+        case stream_end_pod:
+            if (c == '') {
+                stream->state = stream_start;
+            }
+            break;
+        // TODO case eof?
+        default:
+            // TODO Invalid state, shouldn't happen.
+            warning = 1;
+            break;
     }
-    if (send_token) {
-        send_parse_token(send_token);
+    if (warning != 0) {
+        ++stream->total_warnings;
     }
-    state = next_state;
+    ++stream->position;
+    if (c == '\n' || c == '\r') {
+        stream->position = 0;
+        ++stream->line;
+    }
+
+    return warning;
 }
 
 

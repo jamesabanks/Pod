@@ -24,11 +24,14 @@ typedef struct pod_stream pod_stream;
 
 
 struct pod_stream {
-    int total_characters; // total characters received, from Pod's POV
-    int total_errors;     // number of errors since first started reading
-    int max_total_errors; // max number of errors since first started reading
-    int char_num;         // current character within line, starting at zero
-    int line_num;         // current line number, starting at zero
+    int total_characters;   // total characters (pod_char_t) received, from
+                            //   Pod's POV
+    int total_warnings;     // number of warnings since first started reading
+                            //   (negative means warnings are unlimited)
+    int max_warnings;       // maximum number of warnings before Pod ignores
+                            //   further input.
+    int position;           // current character within line, starting at zero
+    int line;               // current line number, starting at zero
 
     pod_stream_state state;
     int string_size;

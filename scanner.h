@@ -26,9 +26,9 @@ enum pod_stream_state {
     stream_blurb_size = 0x32,           /* binary  0011 0010 */
     stream_blurb_post_size = 0x33,      /* binary  0011 0011 */
     stream_blurb_data = 0x34,           /* binary  0011 0100 */
-    stream_warn_escape_prob = 0x40,
-    stream_warn_line_prob = 0x41,
-    stream_warn_pod_prob = 0x42
+    stream_end_escape = 0x40,
+    stream_end_line = 0x41,
+    stream_end_pod = 0x42
 };
 
 
