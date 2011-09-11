@@ -24,6 +24,10 @@ typedef struct pod_stream pod_stream;
 
 
 struct pod_stream {
+    pod_string *name;
+    int allow_blurbs;
+    int c;
+
     int total_characters;   // total characters (pod_char_t) received, from
                             //   Pod's POV
     int total_warnings;     // number of warnings since first started reading
@@ -39,6 +43,7 @@ struct pod_stream {
     int warn_string_size;
     int max_string_size;
     pod_string *buffer;
+    pod_string *current_string;
 
     int escape_number;
     int escape_size;

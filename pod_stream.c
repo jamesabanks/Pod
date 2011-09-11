@@ -15,13 +15,22 @@ int pod_stream_add_char(pod_stream *stream, pod_char_t c, pod_object **object)
 {
     int warning;
 
-    ++stream->total_characters;
+    warning = 0;
     if (stream->total_warnings >= 0) {
         if (stream->total_warnings >= stream_max_warnings) {
-            // return an error that the stream is ignoring any further input
+            // warn that the stream is ignoring any further input
+            warning = POD_TOO_MANY_WARNINGS;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
+            return warning;
         }
     }
-    warning = 0;
+    ++stream->total_characters;
+    ++stream->position;
+    if (c == '\n' || c == '\r') {
+        stream->position = 1;
+        ++stream->line;
+    }
+    stream->c = c;
     switch (stream->state) {
         case stream_start:
             warning = scan_start(stream, c, object);
@@ -69,19 +78,14 @@ int pod_stream_add_char(pod_stream *stream, pod_char_t c, pod_object **object)
                 stream->state = stream_start;
             }
             break;
-        // TODO case eof?
         default:
-            // TODO Invalid state, shouldn't happen.
-            warning = 1;
+            warning = POD_INVALID_STREAM_STATE;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
+            stream->state = stream_start;
             break;
     }
     if (warning != 0) {
         ++stream->total_warnings;
-    }
-    ++stream->position;
-    if (c == '\n' || c == '\r') {
-        stream->position = 0;
-        ++stream->line;
     }
 
     return warning;
@@ -89,7 +93,7 @@ int pod_stream_add_char(pod_stream *stream, pod_char_t c, pod_object **object)
 
 
 
-int add_token(pod_stream *stream, int token, pod_object **object)
+int add_token(pod_stream *stream, pod_stream_token token, pod_object **object)
 {
     pod_string *string;
     pod_map *map;
@@ -98,7 +102,7 @@ int add_token(pod_stream *stream, int token, pod_object **object)
         case string:
             string = pod_string_dup_text(stream->buffer);
             pod_string_clear(stream->buffer);
-            stream->have_concate = false;
+            stream->have_concat = false;
             if already have a string:
                 Append it to current pod_object or if there is no current
                 pod_object, assign it to object.
@@ -169,3 +173,17 @@ int add_token(pod_stream *stream, int token, pod_object **object)
                 assign to object and return it.
             break;
         default:
+            break;
+}
+
+
+
+void pod_stream_log(pod_stream stream, int message, char *file_name, int line)
+{
+    // Example:
+    //
+    // Pod message 127: Got illegal character ')'
+    //   stream: std_out
+    //   at character xxxx (line xxx, column xx)
+    //   message from pod_stream.c, line xxx
+}
