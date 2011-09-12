@@ -25,6 +25,7 @@ typedef struct pod_stream pod_stream;
 
 struct pod_stream {
     pod_string *name;
+    pod_list *stack;
     int allow_blurbs;
     int c;
 
