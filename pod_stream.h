@@ -15,13 +15,14 @@ enum pod_stream_token;
 typedef enum pod_stream_token pod_stream_token;
 
 
+typedef void pod_stream_process_pod(pod_object *object);
+
+
 // Next is pod_stream.  This is a struct that holds information about what to
 // accept from a data source or send to a data sink.
 
 struct pod_stream;
-
 typedef struct pod_stream pod_stream;
-
 
 struct pod_stream {
     pod_string *name;
@@ -45,6 +46,7 @@ struct pod_stream {
     int max_string_size;
     pod_string *buffer;
     pod_string *current_string;
+    pod_stream_process_pod *process_pod;
 
     int escape_number;
     int escape_size;
