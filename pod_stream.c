@@ -102,122 +102,52 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
     pod_object *new;
     pod_object *nothing;
 
+    top = pod_list_peek(stream->stack);
     switch (token) {
         case string:
-            // Get the string
             current = pod_string_dup_text(stream->buffer);
             stream->buffer->used = 0;
             stream->have_concat = false;
-            // Process the previous string
-            if (stream->previous_string != NULL) {
-                pod_stream_process_previous(stream);
+            if (top->type == POD_STRING_TYPE) {
+                pod_stream_merge_down(stream);
+                pod_list_push(stream->stack, current);
+            } else if (top->type == POD_MAPPING_TYPE) {
+                ((pod_mapping *) top)->value = current;
+                pod_stream_merge_down(stream);
+            } else {
+                pod_list_push(stream->stack, current);
             }
-            stream->previous_string = current;
             break;
         case begin_map:
-            if (stream->previous_string != NULL) {
-                pod_stream_process_previous(stream);
+            if (top->type == POD_STRING_TYPE) {
+                pod_stream_merge_down(stream);
             }
             map = pod_create_map();
             pod_list_push(stream->stack, (pod_object *) map);
             break;
         case equals:
-            if (stream->previous_string != NULL) {
-                previous = stream->previous_string;
-                top = pod_list_peek(stream->stack);
-                if (top->type == POD_MAPPING_TYPE) {
-                    // < "foo" = "bar" = ... becomes
-                    // < "foo" = "" "bar" = ...
-                    // The top of the stack is also a mapping, so finish it.
-                    // But this is a syntax error.
-                    mapping = (pod_mapping *) pod_list_pop(stream->stack);
-                    nothing = (pod_object *) pod_string_create_null();
-                    mapping->value = nothing;
-
-                    top = pod_list_peek(stream->stack);
-                    if (top == NULL) {
-                        // This is the whole pod.
-                        stream->process_pod((pod_object *) mapping);
-
-                    } else if (top->type == POD_LIST_TYPE) {
-                        // The top is a list, so add this.
-                        pod_list_append((pod_list*) top, (pod_object*) mapping);
-
-                    } else if (top->type == POD_MAP_TYPE) {
-                        // The top is a map, so add this.
-                        pod_map_define_mapping((pod_map *) top, mapping);
-
-                    } else if (top->type == POD_MAPPING_TYPE) {
-                        // I don't think this can happen, but...
-                        // syntax error
-                        // eg: "ask" = "about" = "pod" is illegal
-                        // err...whatever
-                    } else {
-                        // Error: invalid type (stack is for containers)
-                    }
-                }
-                mapping = pod_create_mapping();
-                mapping->key = stream->previous_string;
-                pod_list_push(stream->stack, (pod_object *) mapping);
+            if (top->type == POD_STRING_TYPE) {
+                pop the string
+                make a new mapping with the string as the key
+                push it on the stack
             } else {
-                // syntax error, eg: < = "foo" >
+                // syntax error.  Need key
             }
-  
-
-            pod_create_mapping();
-            mapping->key = old_string (or null string);
-            push mapping on current pod_object stack or if there is nothing on
-                the current stack, assign it to object an return it.
             break;
         case end_map:
-            if (stream->previous_string != NULL) {
-                pod_stream_handle_previous_string(stream, object);
+            if (top->type == POD_STRING_TYPE) {
+                merge it down, which will generate an error
+                // Error, unkeyed object
+            } else if (top->type == POD_MAPPING_TYPE) {
+                merge it down
+                // Error, truncated mapping
             }
             top = pod_list_peek(stream->stack);
-            if (top == NULL) {
-                // Syntax error, unmatched ">"
-            } else if (top->value == POD_MAP_TYPE) {
-                top = pod_list_pop(stream->stack);
-                new = pod_list_peek(stream->stack);
-                if (new == NULL) {
-                    (*object) = top;
-                } else if (new->type == POD_LIST_TYPE) {
-                    pod_list_append((pod_list *) new, (pod_object *) top);
-                } else if (new->type == POD_MAP_TYPE) {
-                    // Syntax error: can't have < < "foo" = "bar" > >
-                    // ie, can't contain objects without a key.
-                } else if (new->type == POD_MAPPING_TYPE) {
-                    // The top of the stack is a mapping, so this is the value.
-                    ((pod_mapping *) new)->value = top;
-                    top = pod_list_pop(stream->stack);
-                    new = pod_list_peek(stream->stack);
-                    if (new == NULL) {
-                        // This is the whole pod.
-                        (*object) = top;
-                    } else if (new->type == POD_LIST_TYPE) {
-                        // The top is a list, so add this.
-                        pod_list_append((pod_list *) new, (pod_object *) top);
-                    } else if (new->type == POD_MAP_TYPE) {
-                        // The top is a map, so add this.
-                        pod_map_define((pod_map *) new, (pod_mapping *) top);
-                    } else if (new->type == POD_MAPPING_TYPE) {
-                        // I don't think this can happen, but...
-                        // syntax error
-                        // eg: "ask" = "about" = "pod" is illegal
-                        // err...whatever
-                    } else {
-                        // Error: invalid type (stack is for containers)
-                    }
-                    
-                }
-    the top of the current object stack is not a map
-                warn
-                ignore
-            else
-                remove from top of stack
-                append to new (and previous :) top of stack
-                if there is no new top of stack (ie, the stack is empty),
-                    assign it to object and return it
+            if (top->type == POD_MAP_TYPE) {
+                merge it down
+            } else {
+                // Error, encountered unmatched ">"
+            }
             break;
 
         case begin_blurb:
@@ -225,34 +155,29 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
             break;
 
         case begin_list:
-            if already have a string
-                append it to current top of stack.  if the stack is empty,
-                assign it to object to return it.
+            if (top->type == POD_STRING_TYPE) {
+                pod_stream_merge_down(stream);
+            }
             list = pod_list_create()
-            push list on current stack
+            pod_list_push(stream->stack, (pod_object *) list);
             break;
         case end_list:
-            if already have a string
-                append it to current top of stack.  if the stack is empty,
-                assign it to object to return it.
-            if the top of stack is not a list
-                warn
-                ignore
-            else
-                remove from top of stack
-                append to new top of stack
-                if there is no new top of stack (ie, the stack is empty),
-                    assign it to object and return it.
+            if (top->type == POD_STRING_TYPE) {
+                merge it down
+            } else if (top->type == POD_MAPPING_TYPE) {
+                merge it down
+                // Error, truncated mapping
+            }
+            top = pod_list_peek(stream->stack);
+            if (top->type == POD_LIST_TYPE) {
+                merge it down
+            } else {
+                // Error, encountered unmatched "}"
+            }
             break;
         case pod_sync:
-            if already have a string
-                append it to current top of stack.  if the stack is empty,
-                assign it to object to return it.
-            if stack is not empty
-                pod the top of stack
-                append to new top of stack
-                repeat until empty
-                assign to object and return it.
+            while there is something on the stack
+                merge it down
             break;
         default:
             break;
@@ -272,75 +197,56 @@ void pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
 
 
 
-    // pod_stream_process_previous
+    // pod_stream_merge_down
     //
-    // This routine assumes that a string has previously been stored in the
-    // previous_string member of stream.  The calling routine is responsible
-    // for checking that this is true.  Because previous_string exists
-    // (presumably), it is added to whatever is on the top of the stack.
-    // Append it to a list, define it in a map, or make it the value of a
-    // mapping.
+    // This routine takes whatever is on top of the stack and adds it into to
+    // the next element down.  This only works if this second element is a
+    // structure (that is, a list or a map).  Furthermore, if it's a map, then
+    // only a mapping can be added.  
     //
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int pod_stream_process_previous(pod_stream *stream)
+int pod_stream_merge_down(pod_stream *stream)
 {
     pod_mapping *mapping;
-    pod_object *null;
-    pod_string *previous;
     pod_object *top;
+    pod_object *popped;
     int warning;
 
     warning = 0;
-    previous = stream->previous_string;
+    popped = pod_list_pop(stream->stack);
     top = pod_list_peek(stream->stack);
 
+    if (popped->type == POD_MAPPING_TYPE) {
+        mapping = (pod_mapping *) popped;
+        if (mapping->key == null) {
+            // Error, should never, ever happen
+        } else if (mapping->value == null) {
+            // Error, but we'll make a temp
+            mapping->value = pod_string_create_null();
+        }
+    }
     if (top == NULL) {
         // The stack is empty, so this is the whole pod.
-        stream->process_pod(previous);
+        stream->process_pod(popped);
 
     } else if (top->type == POD_LIST_TYPE) {
         // The top of the stack is a list, so add this.
-        pod_list_append((pod_list *) top, (pod_object *) previous);
+        pod_list_append((pod_list *) top, popped);
 
     } else if (top->type == POD_MAP_TYPE) {
-        // Maps can contain only named objects so, for example,
-        // < "foo" > becomes < "foo" = "" >, and < "one" "two" > becomes
-        // < "one" = null "two" = null >, and so on.
-        null = (pod_object *) pod_string_create_null();
-        pod_map_define((pod_map *) top, previous, null);
-
-    } else if (top->type == POD_MAPPING_TYPE) {
-        // The top of the stack is a mapping, so this is the value.
-        mapping = (pod_mapping *) pod_list_pop(stream->stack);
-        mapping->value = previous;
-
-        // The mapping is complete, so add it to the (new) top of the stack.
-        top = pod_list_peek(stream->stack);
-        if (top == NULL) {
-            // This is the whole pod.
-            stream->process_pod((pod_object *) mapping);
-
-        } else if (new->type == POD_LIST_TYPE) {
-            // The top is a list, so add this.
-            pod_list_append((pod_list *) top, (pod_object *) mapping);
-
-        } else if (new->type == POD_MAP_TYPE) {
-            // The top is a map, so add this.
-            pod_map_define_mapping((pod_map *) top, mapping);
-
-        } else if (new->type == POD_MAPPING_TYPE) {
-            // I don't think this can happen, but...
-            // syntax error
+        if (popped->type == POD_MAPPING_TYPE) {
+            pod_map_define_mapping((pod_map *) top, popped);
         } else {
-            // Error: invalid type (stack is for containers)
+            // Error: tried to insert non-keyed element into map
+            popped->destroy(popped);
         }
 
     } else {
-        // Error: invalid type (stack is for containers)
+        // Error: tried to insert element into non-(list|map)
+        popped->destroy(popped);
     }
-    stream->previous_string = NULL;
 
     return warning;
 }
