@@ -1,0 +1,195 @@
+about 09/11/2011
+< > { } [ ] = + " \ \n \r \W \t space
+< >                     <, >
+< foo >                 <, string(foo), > (foo=null) 
+< foo = >               <, string(foo), =, > (foo=null)
+< foo = bar >           <, string(foo), =, string(bar) (foo=bar), >
+< foo = bar = >         <, string(foo), =, string(bar) (foo=bar), =(error), >
+< foo = bar = nitz >    <, string(foo), =, string(bar) (foo=bar), =(error), string(nitz), > (nitz=null)
+< = >                   <, =(error), >
+< = bar >               <, =(error), string(bar), > (bar=null)
+
+< foo = { ... } >       <, string(foo), =, {, ...}, >
+< foo { ... } >         <, string(foo), {(foo=null) (error), ...}(drop), >
+< = { ... } >           <, =(error), {(error), ...}(drop), >
+< { ... } >             <, {(error), ...}(drop), >
+
+
+x                                       empty stack
+=    --> x          (returns error)     =(error)
+foo  --> foo                            string(foo)
+
+x                                       empty stack
+foo  --> foo                            string(foo)
+=    --> foo=null                       = (foo=null)
+bar  --> x          (returns foo=bar)   string(bar)(foo = bar)
+
+start with foo=bar
+try ... (foo bar) ... no
+
+= foo bar --> foo=bar
+= this + is crazy --> thisis=crazy
+= this is crazy --> this=is crazy
+= } --> null=null }
+= foo } --> foo=null }
+= foo bar } --> foo=bar }
+= this is crazy } --> this=is crazy }
+
++ foo bar } --> foo bar }
++ foo } --> foo }
++ } --> }
+
+foo + bar fish } --> foobar fish }
+foo + bar } --> foobar }
+foo + } --> foo }
+
+\t  --> ascii 9
+\n  --> ascii 10
+\r  --> ascii 13
+\9\ --> ascii 9
+\a\ --> ascii 10
+\d\ --> ascii 13
+\09\--> ascii 9
+
+etc.
+
+< = >
+<  -->  [ <> ]
+=  -->  [ <> ] error
+>  -->  [ <> ] complete
+
+< foo = >
+<   -->  [ <> ]
+foo -->  [ <> ] (foo)
+=   -->  [ <> foo= ]
+>   -->  [ < foo=null > ] error complete
+
+< foo >
+<   --> [ <> ]
+foo --> [ <> ] (foo)
+>   --> [ <> ] error complete
+
+{ foo }
+{   -->  [ {} ]
+foo -->  [ {} ] (foo)
+}   -->  [ { foo } ] complete
+
+{ foo = bar = }
+{   -->  [ {} ]
+foo -->  [ {} ] (foo)
+=   -->  [ {} foo= ]
+bar -->  [ {} foo= ] (bar)
+=   -->  [ { foo=null } bar= ]
+}   -->  [ { foo=null bar=null } ] complete
+
+< foo = bar >
+<   --> [ <> ]
+foo --> [ <> ] (foo)
+=   --> [ <> foo= ]
+bar --> [ <> foo= ] (bar)
+>   --> [ < foo=bar > ] complete
+
+{ foo = bar }
+{   -->  [ {} ]
+foo -->  [ {} ] (foo)
+=   -->  [ {} foo= ]
+bar -->  [ {} foo= ] (bar)
+}   -->  [ { foo=bar } ] complete
+
+< foo bar >
+<   -->  [ <> ]
+foo -->  [ <> ] (foo)
+bar -->  [ <> ] error (bar)
+>   -->  [ <> ] error complete
+
+< < > = bar >
+<   -->  [ <> ]
+<   -->  [ <> <> ]
+>   -->  [ <> ] error
+=   -->  [ <> ] error 
+bar -->  [ <> ] (bar)
+>   -->  [ <> ] error complete
+
+{ < > = bar }
+{   -->  [ {} ]
+<   -->  [ {} <> ]
+>   -->  [ { <> } ]
+=   -->  [ { <> } ] error
+bar -->  [ { <> } ] (bar)
+}   -->  [ { <> bar } ] complete
+
+< foo = = bar >
+<   -->  [ <> ]
+foo -->  [ <> ] (foo)
+=   -->  [ <> foo= ]
+=   -->  [ <> foo= ] error
+bar -->  [ <> foo= ] (bar)
+>   -->  [ < foo=bar > ] complete
+
+foo 
+foo -->  [] (foo)
+  -->  [ foo ] sync-complete
+
+=
+=   -->  [] error
+  -->  [] sync-complete
+
+foo = 
+foo -->  [] (foo)
+=   -->  [ foo= ]
+  -->  [ foo=null ] error sync-complete
+
+foo = bar
+foo -->  [] (foo)
+=   -->  [ foo= ]
+bar -->  [ foo= ] (bar)
+  -->  [ foo=bar ] sync-complete
+
+---------
+Trying new thoughts.
+---------
+
+is it real
+is   --> [] (is)
+it   --> [ is ] (it)
+real --> [ is it ] (real)
+
+// Trying without previous string.
+
+foo .
+foo -->  [ foo ]
+.   -->  sync []
+
+foo = bar .
+foo --> [ foo ]
+=   --> [ foo= ]
+bar --> [ foo=bar ] complete-so-push-down --> []
+.   --> sync []   // unnecessary, but good habit
+
+{ foo = bar } .
+{   -->  [ {} ]
+foo -->  [ {} foo ]
+=   -->  [ {} foo= ]
+bar -->  [ {} foo=bar ] completed-mapping-so-push-down --> [ { foo=bar } ]
+}   -->  [ { foo=bar } ] completed-list-so-push-down...process --> []
+.   -->  sync    // unnecessary
+
+{ foo }
+{   -->  [ {} ]
+foo -->  [ {} foo ]
+}   -->  if tos=string, push-down-string [ { foo } ] completed...process --> []
+
+{ ibby foo = bar bibby tibby }
+{     -->  [ {} ]
+ibby  -->  [ {} ibby ]
+foo   -->  if tos=string, push-down-string --> [ { ibby } foo ]
+=     -->  [ { ibby } foo= ]
+bar   -->  [ { ibby } foo=bar ] completed-mapping [ { ibby foo=bar } ]
+bibby -->  [ { ibby foo=bar } bibby ]
+tibby -->  if tos=string, push-down-string --> [ { ibby foo=bar bibby } tibby ]
+}     -->  if tos=string, push-down-string --> [ { ibby foo=bar bibby tibby } ]
+           then completed-list-so-push-down...process --> []
+
+Symantics for { foo = bar = } differs.
+    With previous_string --> { foo=null bar=null }
+    W/o previous_string --> { foo=bar error }
