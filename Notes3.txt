@@ -193,3 +193,175 @@ tibby -->  if tos=string, push-down-string --> [ { ibby foo=bar bibby } tibby ]
 Symantics for { foo = bar = } differs.
     With previous_string --> { foo=null bar=null }
     W/o previous_string --> { foo=bar error }
+
+Can I get around the need for a mapping (a key-value association) prior to
+having a map to put it in?
+
+foo' means a flagged string "foo"
+foo= means a mapping with a key of "foo"
+
+< foo = bar >
+<   -->  [ <> ]
+foo -->  [ <> foo ]
+=   -->  [ <> foo' ]
+bar -->  [ <> foo' bar]
+         [ < foo=bar > ]
+>   -->  completed []
+
+< foo = >
+<   -->  [ <> ]
+foo -->  [ <> foo ]
+=   -->  [ <> foo' ]
+>   -->  [ <> foo' "" ]
+         [ < foo="" > ]
+         completed --> []
+
+{ buz foo = bar }
+{   -->  [ {} ]
+buz -->  [ {} buz ]
+foo -->  [ { buz } foo ]
+=   -->  [ {} foo' ]
+bar -->  [ {} foo' bar]
+         [ { foo=bar } ]
+}   -->  completed []
+
+But whatever way you do it (either foo' or foo=), you end up creating a mapping
+prior to having a map to put it in.  So I have to write a define_mapping
+function for pod_map.  So why change anything?  Well, you can get around a
+mapping, but you need another layer of lookahead.  What are you adding the
+mapping to?
+
+lab rat.
+
+lab     [ ]     -->  [ lab ]    if stack has a string, merge down
+                                  (it doesn't)
+                                push string ("lab");
+rat     [ lab ] -->  [ rat ]    if stack has a string, merge down
+                                  "lab" is merged.  It's the bottom, process it.
+.       [ rat ]                 merge down until empty
+        [ ]
+
+Also, if you go the foo' route, it makes more sense to drop the = (the flag,
+denoted by ') rather than try to complete the mapping (denoted by adding "").
+
+lab = rat.
+
+lab     [ ]     ->  [ lab ]     if stack has an unflagged string, merge down
+                                  (it doesn't)
+                                push string ("lab");
+
+=       [ lab ] ->  [ lab' ]    flag the string
+
+rat     [ lab'] ->  [ lab' rat ]if stack has an unflagged string, merge down
+                                  (it doesn't)
+                                push string ("rat");
+
+.       [ lab' rat ]            merge down until empty
+        [ lab=rat ]
+        [ ]
+
+
+kill lab = rat <foo = bar>
+start   [ ]
+kill ...................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            push string ("kill")
+    ->  [ kill ]
+lab ....................... if stack has an unflagged string, merge down
+                              merge down ("kill")
+                              it's on bottom so process it
+                            push string ("lab");
+    ->  [ lab ]
+= ......................... flag the string
+    ->  [ lab' ]
+rat ....................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            push string ("rat");
+    ->  [ lab' rat ]
+< ......................... if stack has an unflagged string, merge down
+                              merge down ("rat")
+    ->  [ lab=rat ]           a mapping results so merge down again
+                              merge down (lab=rat)
+                              its on the bottom so process it
+    ->  [ ]                 create and push map
+    ->  [ <> ]
+foo ....................... if stack has an unflagged string, merge down  
+                              (it doesn't)
+                            push string ("foo")
+    ->  [ <> foo ]
+= ......................... flag the string
+    ->  [ <> foo' ]    
+bar ....................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            push string ("bar");
+    ->  [ <> foo' bar ]
+> ......................... if stack has an unflagged (any?) string, merge down
+                              merge down ("bar")
+    ->  [ <> foo=bar ]        a mapping results so merge down again
+                              merge down (foo=bar)
+    ->  [ < foo=bar > ]     at the end of the map so merge down (yet again)
+                              its on the bottom so process it
+    ->  [ ]
+
+
+{ really foo = bar }
+start   [ ]
+{ ......................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            create and push list
+    ->  [ {} ]
+really .................... if stack has an unflagged string, merge down  
+                              (it doesn't)
+                            push string ("really")
+    ->  [ {} really ]
+foo ....................... if stack has an unflagged string, merge down  
+                              merge down ("really")
+                            push string ("foo")
+    ->  [ { really } foo ]
+= ......................... flag the string
+    ->  [ { really } foo' ]    
+bar ....................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            push string ("bar");
+    ->  [ { really } foo' bar ]
+} ......................... if stack has an unflagged (any?) string, merge down
+                              merge down ("bar")
+    ->  [ { really } foo=bar ]
+                              a mapping results so merge down again
+                              merge down (foo=bar)
+    ->  [ { really foo=bar } ]
+                            at the end of the list so merge down (yet again)
+                              its on the bottom so process it
+    ->  [ ]
+
+look = {}
+start   [ ]
+look ...................... if stack has an unflagged string, merge down  
+                              (it doesn't)
+                            push string ("look")
+    ->  [ look ]
+= ......................... flag the string/create the mapping
+    ->  [ look' ]    
+{ ......................... if stack has an unflagged string, merge down
+                              (it doesn't)
+                            create and push list
+    ->  [ look' {} ]
+} ......................... if stack has an unflagged (any?) string, merge down
+                              (it doesn't)
+                            at the end of the list so merge down
+                              merge down ({})
+    ->  [ look={} ]
+                            a mapping results so merge down again
+                              merge down (look={})
+                              its on the bottom so process it
+    ->  [ ]
+
+
+{ yes no may }
+{   ->  [ {} ]
+yes ->  [ {} yes ]
+no  ->  [ { yes } no 
+may ->  [ { yes no } may ]
+}   ->  [ { yes no may } ]  ->  [ ]
+
+,   ,   ,   ,   ,   ,

@@ -109,11 +109,17 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
             stream->buffer->used = 0;
             stream->have_concat = false;
             if (top->type == POD_STRING_TYPE) {
-                pod_stream_merge_down(stream);
-                pod_list_push(stream->stack, current);
-            } else if (top->type == POD_MAPPING_TYPE) {
-                ((pod_mapping *) top)->value = current;
-                pod_stream_merge_down(stream);
+                previous = (pod_string *) top;
+                if (previous->flags & POD_IS_KEY == 1) {
+                    pop the string
+                    pod_mapping_create_with(previous, (pod_object *) current);
+                    make new map
+                    push on stack
+                    pod_stream_merge_down(stream);
+                } else { 
+                    pod_stream_merge_down(stream);
+                    pod_list_push(stream->stack, current);
+                }
             } else {
                 pod_list_push(stream->stack, current);
             }
@@ -126,6 +132,9 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
             pod_list_push(stream->stack, (pod_object *) map);
             break;
         case equals:
+        //mapping = pod_mapping_create();
+        //mapping->key = top;
+        //pod_list_push(stream->stack, mapping);
             if (top->type == POD_STRING_TYPE) {
                 pop the string
                 make a new mapping with the string as the key
@@ -202,49 +211,69 @@ void pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
     // This routine takes whatever is on top of the stack and adds it into to
     // the next element down.  This only works if this second element is a
     // structure (that is, a list or a map).  Furthermore, if it's a map, then
-    // only a mapping can be added.  
+    // only a mapping can be added.  If this routine is called with the top
+    // element as a string with the POD_IS_KEY flag set, the routine will clear
+    // the POD_IS_KEY flag.  So this routine shouldn't be called by the "="
+    // token.
     //
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
 int pod_stream_merge_down(pod_stream *stream)
 {
+    int is_mapping;
     pod_mapping *mapping;
     pod_object *top;
     pod_object *popped;
+    pod_object *second;
+    pod_string *string;
     int warning;
 
     warning = 0;
+
+    top = pod_list_peek(stream->stack);
+
+    if (top == NULL) {
+        // The stack is empty, nothing to do
+        return 0;
+    } else if (top->type == POD_MAPPING_TYPE) {
+        // Error: trailing "="
+        // ie, foo = . -> foo= . -> foo(error)
+        mapping = (pod_mapping *) pod_list_pop(stream->stack);
+        pod_list_push(mapping->key);
+        mapping->key = NULL;
+        mapping->o.destroy(mapping);
+    }
+
     popped = pod_list_pop(stream->stack);
     top = pod_list_peek(stream->stack);
 
-    if (popped->type == POD_MAPPING_TYPE) {
-        mapping = (pod_mapping *) popped;
-        if (mapping->key == null) {
-            // Error, should never, ever happen
-        } else if (mapping->value == null) {
-            // Error, but we'll make a temp
-            mapping->value = pod_string_create_null();
-        }
-    }
     if (top == NULL) {
-        // The stack is empty, so this is the whole pod.
+        // The stack is now empty, so popped is the whole pod.
         stream->process_pod(popped);
-
     } else if (top->type == POD_LIST_TYPE) {
-        // The top of the stack is a list, so add this.
+        // The top of the stack is a list, so add popped.
         pod_list_append((pod_list *) top, popped);
-
+    } else if (top->type == POD_MAPPING_TYPE) {
+        if (popped->type != POD_MAPPING_TYPE) {
+            ((pod_mapping *) top)->value = popped;
+            warning = pod_stream_merge_down(stream);
+        } else {
+            // Error: a mapping cannot be the value of another mapping
+            // I don't think this can happen
+            popped->destroy(popped);
+        }
     } else if (top->type == POD_MAP_TYPE) {
         if (popped->type == POD_MAPPING_TYPE) {
             pod_map_define_mapping((pod_map *) top, popped);
         } else {
-            // Error: tried to insert non-keyed element into map
+            // Error: tried to insert unnamed object into map
+            // ie, < foo >
             popped->destroy(popped);
         }
-
     } else {
-        // Error: tried to insert element into non-(list|map)
+        // Error: tried to insert element into string
+        // I don't think this can happen
         popped->destroy(popped);
     }
 
