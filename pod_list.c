@@ -182,6 +182,25 @@ size_t pod_list_size(pod_list *list)
 
 
 
+    // pod_list_is_empty
+    //
+    // Determine the number of objects in the list.
+    //
+    // Returns:
+    //      0           There are objects in the list.
+    //      Non-zero    There are NO objects in the list.
+
+int pod_list_is_empty(pod_list *list)
+{
+    int empty;
+
+    empty = list->header.next == &list->header;
+
+    return empty;
+}
+
+
+
     // pod_list_find
     //
     // Find the object at the given position.

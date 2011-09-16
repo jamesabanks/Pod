@@ -43,6 +43,7 @@ extern pod_object *pod_list_peek(pod_list *list);
 extern pod_object *pod_list_pop(pod_list *list);
 extern void pod_list_push(pod_list *list, pod_object *object);
 extern size_t pod_list_size(pod_list *list);
+extern int pod_list_is_empty(pod_list *list);
 
 extern pod_object *pod_list_find(pod_list *list, size_t pos);
 extern pod_object *pod_list_insert(pod_list *list, size_t pos, pod_object *obj);
