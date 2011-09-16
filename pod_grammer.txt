@@ -1,0 +1,40 @@
+With the help of
+  http://cuiwww.unige.ch/db-research/Enseignement/analyseinfo/DIAG33/index.html
+on 2011.09.14
+
+stream = < pod ["."] > .
+pod = ( structure )
+	| ( mapping )
+	| ( string ) .
+structure = ( list ) 
+	| ( map )
+	| ( blurb ) .
+list  = "{" < pod > "}" .
+map   = "<" < mapping > ">" .
+blurb = "[" hex_number "]" .
+mapping = ( string "=" string )
+	| ( string "=" structure ) .
+hex_number = hex_digit < hex_digit > .
+hex_digit = ("0") | ("1") | ("2") | ("3") | ("4")
+        | ("5") | ("6") | ("7 ") | ("8") | ("9")
+	| ("A or a") | ("B or b") | ("C or c")
+        | ("D or d") | ("E or e") | ("F or f") .
+string = ( simple_string )
+	| ( quoted_string )
+        | ( string "+" string ) .
+simple_string = simple_char < simple_char > .
+quoted_string = """ < quoted_char > """ .
+simple_char = ("any character except those in syntax_char, space, or line")
+	| ( escape_char ) .
+quoted_char = "any character except quote or backslash or those in line" 
+	| ( escape_char ) .
+syntax_char = ("{") | ("}") | ("<") | (">") | ("[") | ("]")
+        | ("+") | ("=") | (".") | (""") | ("\") .
+space = ( " " ) | ( "\t" ) .
+line = ( "\n" ) | ( "\r") .
+escape_char = ( "\n newline" )
+	| ( "\r carriage return")
+	| ( "\t tab")
+	| ( "\" hex_number "\" )
+	| ( "\ + any other character = that character " ) .
+
