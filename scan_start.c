@@ -1,4 +1,4 @@
-#include <scanner.h>
+#include <scan.h>
 
 
 
@@ -9,7 +9,7 @@
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_start(pod_stream *stream, pod_char_t c, pod_object **object)
+int scan_start(pod_stream *stream, pod_char_t c)
 {
     int have_string;
     int warning;
@@ -24,7 +24,7 @@ int scan_start(pod_stream *stream, pod_char_t c, pod_object **object)
             break;
         case '"':  // Start a quoted string
             if ((!stream->have_concat) && (have_string)) {
-                add_token(stream, stream_string, object);
+                pod_stream_add_token(stream, pod_token_string);
             }
             stream->state = stream_quoted;
             break;
@@ -32,8 +32,8 @@ int scan_start(pod_stream *stream, pod_char_t c, pod_object **object)
             stream->have_concat = true;
             break;
         case '<':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_begin_map, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_begin_map);
             break;
         case '=':
             if (have_string) { add_token(stream, stream_string, object); }

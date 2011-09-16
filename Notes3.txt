@@ -364,4 +364,99 @@ no  ->  [ { yes } no
 may ->  [ { yes no } may ]
 }   ->  [ { yes no may } ]  ->  [ ]
 
+
+2011.09.14
+
+
+< foo = bar > (how many times have I done this one?)
+<   ->  [ <> ]
+foo ->  [ <> foo ]
+=   ->  [ <> foo= ]
+bar ->  [ <> foo= bar ]
+>   ->  * merge, top is string
+        [ <> foo=bar ]
+        * merge, completed mapping
+        reduce
+        [ <> foo ]
+        drop foo (can't put foo in map)
+        [ <> ]
+        * merge, top is map
+        [ ] finish
+
+            problem, foo=bar will be regressed to foo on merge
+            changing check in merge_down, only regress if mapping->value is NULL
+            should be:
+        [ <> foo=bar ]
+        * merge, completed mapping
+        [ < foo=bar > ]
+        * merge, top is map
+        [ ] finish
+
+< foo = >
+<   ->  [ <> ]
+foo ->  [ <> foo ]
+=   ->  [ <> foo= ]
+>   ->  no merge, top is not string
+        no merge, top is not map
+        [ <> foo= ] finish -- broken
+    should be
+        * merge, top is (incomplete) mapping
+        regress
+        [ <> foo ]
+        drop foo (can't put foo in map)
+        [ <> ]
+        * merge, top is map
+        [ ] finish
+        
+< >
+<   ->  [ <> ]
+>   ->  merge
+        [ ] finish
+
+{ < foo = bar > }
+{   ->  [ {} ]
+<   ->  [ {} <> ]
+foo ->  [ {} <> foo ]
+=   ->  [ {} <> foo= ]
+bar ->  [ {} <> foo= bar ]
+>   ->  merge, top is string
+        [ {} <> foo=bar ]
+        merge, completed mapping
+        [ {} < foo=bar > ]
+        merge, top is map
+        [ { < foo=bar > } ]
+}   ->  merge, top is list
+        [ ] finish
+        
+{ foo = }
+{   ->  [ {} ]
+foo ->  [ {} foo ]
+=   ->  [ {} foo= ]
+}   ->  no merge, top is not string     
+        no merge, top is not list
+        [ {} foo= ] finish -- broken
+
+{ foo }
+{   ->  [ {} ]
+foo ->  [ {} foo ]
+}   ->  * merge, top is string
+        [ { foo } ]
+        * merge, top is list
+        [ ] finish
+
+so end_map and end_list should merge on string or mapping.
+
+{ foo = }
+{   ->  [ {} ]
+foo ->  [ {} foo ]
+=   ->  [ {} foo= ]
+}   ->  * merge, top is mapping
+        regress, top is incomplete
+        [ {} foo ]
+        [ { foo } ]
+        * merge, top is list
+        [ ] finish
+
+ok, that works.
+
 ,   ,   ,   ,   ,   ,

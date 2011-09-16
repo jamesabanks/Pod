@@ -2,17 +2,14 @@
 #define INCLUDE_POD_STREAM_H
 
 #include "pod_char.h"
+#include "pod_object.h"
+#include "pod_string.h"
+#include "pod_list.h"
+#include "pod_mapping.h"
+#include "pod_map.h"
+#include "pod_stream_state.h"
+#include "pod_stream_token.h"
 
-
-
-enum pod_stream_state;
-
-typedef enum pod_stream_state pod_stream_state;
-
-
-enum pod_stream_token;
-
-typedef enum pod_stream_token pod_stream_token;
 
 
 typedef void pod_stream_process_pod(pod_object *object);
@@ -63,11 +60,11 @@ struct pod_stream {
     int pod_errors;       // number of errors since pod beginning
     int max_pod_errors;   // max number of errors since pod beginning
 
-    work buffer (for strings) (two times max string size?)
-    link endian-ness: I don't think endianess is Pod's problem, except maybe in
-        blurbs.
-    how do you negotiate endian-ness?  Is that even meaningful?
-    how do you find out max sizes?
+//    work buffer (for strings) (two times max string size?)
+//    link endian-ness: I don't think endianess is Pod's problem, except maybe
+//        in blurbs.
+//    how do you negotiate endian-ness?  Is that even meaningful?
+//    how do you find out max sizes?
 };
 
 
@@ -83,23 +80,10 @@ extern void pod_stream_destroy(void *target);
 
     // Other pod_stream-related functions
 
-extern void pod_stream_add_char(
-    pod_stream *stream,
-    pod_char_t c,
-    pod_object **object,
-    int error
-);
-extern void pod_stream_add_token(
-    pod_stream *stream,
-    pod_token_t token,
-    pod_object **object,
-    int error
-);
-extern void pod_stream_end(
-    pod_stream *stream,
-    pod_object **object,
-    int error
-);
+extern int pod_stream_add_char(pod_stream *stream, pod_char_t c);
+extern int pod_stream_add_token(pod_stream *stream, pod_stream_token token);
+extern int pod_stream_end(pod_stream *stream);
+extern void pod_stream_log(pod_stream *stream, int msg, char *fname, int line);
 
 
 
