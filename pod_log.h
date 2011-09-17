@@ -5,8 +5,22 @@
 
 typedef enum pod_warnings {
     POD_OKAY = 0,
-    POD_TOO_MANY_WARNINGS = 1,
-    POD_INVALID_STREAM_STATE = 2
+
+    // pod_stream_add_char
+    POD_TOO_MANY_WARNINGS = 10,
+    POD_INVALID_STREAM_STATE,
+
+    // pod_stream_add_token
+    POD_EQUALS_NOT_PRECEDED_BY_KEY = 20,
+    POD_UNMATCHED_END_MAP,
+    POD_UNMATCHED_END_LIST,
+    POD_UNKNOWN_TOKEN,
+
+    // pod_stream_merge_down
+    POD_EQUALS_AT_END = 30,
+    POD_TWO_MAPPINGS,
+    POD_INVALID_INSERT_INTO_MAP,
+    POD_INVALID_INSERT_INTO_STRING,
 } pod_warnings;
 
 

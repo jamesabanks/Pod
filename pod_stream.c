@@ -104,7 +104,9 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
     pod_map *map;
     pod_mapping *mapping;
     pod_object *top;
+    int warning;
 
+    warning = 0;
     top = pod_list_peek(stream->stack);
     switch (token) {
         case pod_token_string:
@@ -132,6 +134,8 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
                 pod_list_push(stream->stack, (pod_object *) mapping);
             } else {
                 // Error: the token prior to "=" needs to be a string.
+                warning = POD_EQUALS_NOT_PRECEDED_BY_KEY;
+                pod_stream_log(stream, warning, __FILE__, __LINE__);
             }
             break;
         case pod_token_end_map:
@@ -143,6 +147,8 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
                 pod_stream_merge_down(stream);
             } else {
                 // Error: unmatched ">"
+                warning = POD_UNMATCHED_END_MAP;
+                pod_stream_log(stream, warning, __FILE__, __LINE__);
             }
             break;
 
@@ -166,6 +172,8 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
                 pod_stream_merge_down(stream);
             } else {
                 // Error, encountered unmatched "}"
+                warning = POD_UNMATCHED_END_LIST;
+                pod_stream_log(stream, warning, __FILE__, __LINE__);
             }
             break;
         case pod_token_pod_sync:
@@ -175,8 +183,12 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
             break;
         default:
             // Error: unknown token
+            warning = POD_UNKNOWN_TOKEN;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
             break;
     }
+
+    return warning;
 }
 
 
@@ -196,11 +208,9 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
 
 int pod_stream_merge_down(pod_stream *stream)
 {
-    int is_mapping;
     pod_mapping *mapping;
     pod_object *top;
     pod_object *popped;
-    pod_string *string;
     int warning;
 
     warning = 0;
@@ -215,6 +225,8 @@ int pod_stream_merge_down(pod_stream *stream)
         if (mapping->value == NULL) {
             // Error: trailing "="
             // ie, foo = . -> foo= . -> foo(error)
+            warning = POD_EQUALS_AT_END;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
             mapping = (pod_mapping *) pod_list_pop(stream->stack);
             pod_list_push(stream->stack, (pod_object *) mapping->key);
             mapping->key = NULL;
@@ -235,9 +247,12 @@ int pod_stream_merge_down(pod_stream *stream)
         if (popped->type != POD_MAPPING_TYPE) {
             ((pod_mapping *) top)->value = popped;
             warning = pod_stream_merge_down(stream);
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
         } else {
             // Error: a mapping cannot be the value of another mapping
             // I don't think this can happen
+            warning = POD_TWO_MAPPINGS;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
             popped->destroy(popped);
         }
     } else if (top->type == POD_MAP_TYPE) {
@@ -246,6 +261,8 @@ int pod_stream_merge_down(pod_stream *stream)
         } else {
             // Error: tried to insert unnamed object into map
             // ie, < foo >
+            warning = POD_INVALID_INSERT_INTO_MAP;
+            pod_stream_log(stream, warning, __FILE__, __LINE__);
             popped->destroy(popped);
         }
     } else {
