@@ -1,4 +1,4 @@
-#include <scanner.h>
+#include "scan.h"
 
 
 
@@ -9,7 +9,7 @@
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
     
-int scan_quoted(pod_stream *stream, pod_char_t c, pod_object **object)
+int scan_quoted(pod_stream *stream, pod_char_t c)
 {
     int warning;
 
@@ -19,25 +19,25 @@ int scan_quoted(pod_stream *stream, pod_char_t c, pod_object **object)
         case '\r':
             // Error: missing the '"' which ends the quoted string.
             warning = 1;
-            stream->state = stream_start;
+            stream->state = pod_start;
             break;
         case '"':  // A quote ends the quoted string.
-            stream->state = stream_start;
+            stream->state = pod_start;
             break;
         case '\\':
-            state = stream_quoted_escape;
+            stream->state = pod_quoted_escape;
             break;
         case '':
-            if (!pod_string_is_empty(stream->buffer) {
-                add_token(stream, stream_string, object);
+            if (!pod_string_is_empty(stream->buffer)) {
+                pod_stream_add_token(stream, pod_token_string);
             }
-            add_token(stream, stream_pod_sync, object);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_pod_sync);
+            stream->state = pod_start;
             // Error: missing the '"' which ends the quoted string.
             warning = 1;
             break;
         default:
-            pod_string_add_char(stream->buffer, c);
+            pod_string_append_char(stream->buffer, c);
             break;
     }
 

@@ -77,7 +77,7 @@ int scan_start(pod_stream *stream, pod_char_t c)
                 // characters that are above 31?
                 warning = 1;
             } else {
-                pod_stream_add_char(stream, c);
+                pod_string_append_char(stream->buffer, c);
                 stream->state = pod_simple;
             }
             break;

@@ -1,4 +1,4 @@
-#include <scanner.h>
+#include "scan.h"
 
 
 
@@ -22,15 +22,15 @@ int scan_escape_hex(pod_stream *stream, pod_char_t c)
         case '\\': // End of escape
             // Put the char in the buffer.  Exit escape state.
             pod_string_append_char(stream->buffer, stream->escape_value);
-            stream->state &= stream_state_mask;
+            stream->state &= pod_state_mask;
             break;
         case '\n': // Unexpected end
         case '\r': // Unexpected end
         case '': // Unexpected end
             // The token ended.
             pod_string_append_char(stream->buffer, stream->escape_value);
-            add_token(token_string);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_string);
+            stream->state = pod_start;
             // Error: the end was unexpected, so emit a warning.
             warning = 1;
             break;
@@ -62,7 +62,7 @@ int scan_escape_hex(pod_stream *stream, pod_char_t c)
                     case 'D':
                     case 'E':
                     case 'F':
-                        digit = (10 + (c - 'A')) & 0xf
+                        digit = (10 + (c - 'A')) & 0xf;
                         stream->escape_value *= 0x10;
                         stream->escape_value |= digit;
                         break;

@@ -1,4 +1,4 @@
-#include <scanner.h>
+#include "scan.h"
 
 
 
@@ -10,7 +10,7 @@
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
+int scan_escape(pod_stream *stream, pod_char_t c)
 {
     int warning;
 
@@ -20,13 +20,13 @@ int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
         case '\r': // Unexpected end
         case '': // Unexpected end
             // There is no escape character, and the token ends.
-            if (!pod_string_is_empty(stream->buffer) {
-                add_token(stream, stream_string, object);
+            if (!pod_string_is_empty(stream->buffer)) {
+                pod_stream_add_token(stream, pod_token_string);
             }
             if (c == '') {
-                add_token(stream, stream_pod_sync, object);
+                pod_stream_add_token(stream, pod_token_pod_sync);
             }
-            stream->state = stream_start;
+            stream->state = pod_start;
             break;
         case '0':
         case '1':
@@ -38,8 +38,8 @@ int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
         case '7':
         case '8':
         case '9':
-            stream->state &= stream_state_mask;
-            stream->state |= stream_escape_hex;
+            stream->state &= pod_state_mask;
+            stream->state |= pod_escape_hex;
             stream->escape_value = (c - '0') & 0xf;
             break;
         case 'A':
@@ -48,9 +48,9 @@ int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
         case 'D':
         case 'E':
         case 'F':
-            stream->state &= stream_state_mask;
-            stream->state |= stream_escape_hex;
-            stream->escape_value = (10 + (c - 'A')) & 0xf
+            stream->state &= pod_state_mask;
+            stream->state |= pod_escape_hex;
+            stream->escape_value = (10 + (c - 'A')) & 0xf;
             break;
         case 'a':
         case 'b':
@@ -58,21 +58,21 @@ int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
         case 'd':
         case 'e':
         case 'f':
-            stream->state &= stream_state_mask;
-            stream->state |= stream_escape_hex;
+            stream->state &= pod_state_mask;
+            stream->state |= pod_escape_hex;
             stream->escape_value = (10 + (c - 'a')) & 0xf;
             break;
         case 't':
             pod_string_append_char(stream->buffer, '\t');
-            stream->state &= stream_state_mask;
+            stream->state &= pod_state_mask;
             break;
         case 'n':
             pod_string_append_char(stream->buffer, '\n');
-            stream->state &= stream_state_mask;
+            stream->state &= pod_state_mask;
             break;
         case 'r':
             pod_string_append_char(stream->buffer, '\r');
-            stream->state &= stream_state_mask;
+            stream->state &= pod_state_mask;
             break;
         default:
             if (c < 32) {
@@ -81,8 +81,8 @@ int scan_escape(pod_stream *stream, pod_char_t c, pod_object **object)
                 // Syntax error: got control (non-printing, < 32) character.
                 warning = 1;
             } else {
-                pod_string_add_char(stream->buffer, c);
-                stream->state &= stream_state_mask;
+                pod_string_append_char(stream->buffer, c);
+                stream->state &= pod_state_mask;
             }
             break;
     }

@@ -51,55 +51,58 @@ int scan_simple(pod_stream *stream, pod_char_t c)
         case '\n':
         case '\r':
         case ' ':
-            stream->state = stream_start
+            stream->state = pod_start;
             break;
         case '"':  // A quote ends the simple string and starts a quoted string.
-            add_token(stream, stream_string, object);
-            stream->state = stream_quoted;
+            pod_stream_add_token(stream, pod_token_string);
+            stream->state = pod_quoted;
             break;
         case '+': // A concat mark (currently '+') ends the simple string
-            have_concat = true;
-            stream->state = stream_start;
+            stream->have_concat = true;
+            stream->state = pod_start;
             break;
         case '<':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_begin_map, object);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_begin_map);
+            stream->state = pod_start;
             break;
         case '=':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_equals, object);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_equals);
+            stream->state = pod_start;
             break;
         case '>':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_end_map, object);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_end_map);
+            stream->state = pod_start;
             break;
         case '[':
-            add_token(stream, stream_string, object);
-            stream->state = stream_blurb_pre_size;
+            pod_stream_add_token(stream, pod_token_string);
+            stream->state = pod_blurb_pre_size;
             break;
         case '\\':
-            stream->state = stream_simple_escape;
+            stream->state = pod_simple_escape;
             break;
         case ']':
-            add_token(stream, stream_string, object);
-            stream->state = stream_start;
+            pod_stream_add_token(stream, pod_token_string);
+            stream->state = pod_start;
             // Syntax error: extraneous close bracket.
             warning = 1;
             break;
         case '{':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_begin_list, object);
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_begin_list);
+            stream->state = pod_start;
             break;
         case '}':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_end_list, object);
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_end_list);
+            stream->state = pod_start;
             break;
         case '':
-            add_token(stream, stream_string, object);
-            add_token(stream, stream_pod_sync, object);
+            pod_stream_add_token(stream, pod_token_string);
+            pod_stream_add_token(stream, pod_token_pod_sync);
+            stream->state = pod_start;
             break;
         default:
             if (c < 32) {
@@ -107,7 +110,7 @@ int scan_simple(pod_stream *stream, pod_char_t c)
                 // characters that are above 31?
                 warning = 1;
             } else {
-                pod_string_add_char(stream->buffer, c);
+                pod_string_append_char(stream->buffer, c);
             }
             break;
     }
