@@ -61,6 +61,55 @@ void pod_map_destroy(void *target)
 
 
 
+    // TODO Test pod_map_define_mapping
+
+    // pod_map_define_mapping
+    //
+    // Check to see if a mapping's key already exists.  If it does exist, set
+    // the old mapping's value to the mapping->value supplied, and return the
+    // old value.  Otherwise put the new mapping in the map.  DO NOT define a
+    // mapping that is already part of a map or list!  That isn't checked for
+    // and it will result in bad weirdness.
+    //
+    // Returns:
+    //      NULL            The provided mapping, mapping->key, or
+    //                      mapping->value is NULL.  Or it could mean the
+    //                      mapping was inserted.
+    //      pod_object *    The previous value, if a previous mapping existed.
+
+pod_object *pod_map_define_mapping(pod_map *map, pod_mapping *mapping)
+{
+    pod_node *node;
+    pod_object *old;
+    pod_mapping *orig_mapping;
+
+    // This is less than good.  NULL can mean error, or NULL can mean okay.
+    // If we return a NULL, the caller should (can? must?) check to see if
+    // mapping is okay.
+    if (mapping == NULL) return NULL;
+    if (mapping->key == NULL) return NULL;
+    if (mapping->value == NULL) return NULL;
+
+    old = NULL;
+    orig_mapping = pod_map_lookup_mapping(map, mapping->key);
+    if (orig_mapping != NULL && orig_mapping != mapping) {
+        old = orig_mapping->value;
+        orig_mapping->value = mapping->value;
+        mapping->value = NULL;
+        mapping->o.destroy(mapping);
+    } else {
+        node = &map->header;
+        mapping->o.n.previous = node;
+        mapping->o.n.next = node->next;
+        node->next->previous = &mapping->o.n;
+        node->next = &mapping->o.n;
+    }
+
+    return old;
+}
+
+
+
     // pod_map_define
     //
     // Map a key to a value.  If the key already exists, change the value.  If

@@ -1,4 +1,4 @@
-#include <scan.h>
+#include "scan.h"
 
 
 
@@ -14,7 +14,7 @@ int scan_start(pod_stream *stream, pod_char_t c)
     int have_string;
     int warning;
 
-    have_string = ! pod_stream_is_empty(stream->buffer);
+    have_string = ! pod_string_is_empty(stream->buffer);
     warning = 0;
     switch (c) {
         case '\t': // Do nothing.
@@ -26,7 +26,7 @@ int scan_start(pod_stream *stream, pod_char_t c)
             if ((!stream->have_concat) && (have_string)) {
                 pod_stream_add_token(stream, pod_token_string);
             }
-            stream->state = stream_quoted;
+            stream->state = pod_quoted;
             break;
         case '+':
             stream->have_concat = true;
@@ -36,40 +36,40 @@ int scan_start(pod_stream *stream, pod_char_t c)
             pod_stream_add_token(stream, pod_token_begin_map);
             break;
         case '=':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_equals, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_equals);
             break;
         case '>':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_end_map, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_end_map);
             break;
         case '[':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_begin_blurb, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_begin_blurb);
             break;
         case '\\':
             if ((!stream->have_concat) && (have_string)) {
-                add_token(stream, stream_string, object);
+                pod_stream_add_token(stream, pod_token_string);
             }
-            state = stream_string_escape;
+            stream->state = pod_simple_escape;
             break;
         case ']':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_end_blurb);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_end_blurb);
             // TODO Shouldn't get ']' in start state.
             warning = 1;
             break;
         case '{':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_begin_list, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_begin_list);
             break;
         case '}':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_end_list, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_end_list);
             break;
         case '':
-            if (have_string) { add_token(stream, stream_string, object); }
-            add_token(stream, stream_pod_sync, object);
+            if (have_string) { pod_stream_add_token(stream, pod_token_string); }
+            pod_stream_add_token(stream, pod_token_pod_sync);
             break;
         default:
             if (c < 32) {
@@ -77,8 +77,8 @@ int scan_start(pod_stream *stream, pod_char_t c)
                 // characters that are above 31?
                 warning = 1;
             } else {
-                pod_string_add_char(stream->buffer, c);
-                state = stream_simple;
+                pod_stream_add_char(stream, c);
+                stream->state = pod_simple;
             }
             break;
     }

@@ -209,8 +209,9 @@ int pod_stream_add_token(pod_stream *stream, pod_stream_token token)
 int pod_stream_merge_down(pod_stream *stream)
 {
     pod_mapping *mapping;
-    pod_object *top;
+    pod_object *object;
     pod_object *popped;
+    pod_object *top;
     int warning;
 
     warning = 0;
@@ -257,7 +258,11 @@ int pod_stream_merge_down(pod_stream *stream)
         }
     } else if (top->type == POD_MAP_TYPE) {
         if (popped->type == POD_MAPPING_TYPE) {
-            pod_map_define_mapping((pod_map *) top, popped);
+            object = pod_map_define_mapping((pod_map *) top,
+                                            (pod_mapping *) popped);
+            if (object != NULL) {
+                object->destroy(object);
+            }
         } else {
             // Error: tried to insert unnamed object into map
             // ie, < foo >

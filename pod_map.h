@@ -35,6 +35,7 @@ extern void pod_map_destroy(void *target);
 
     // Other pod_map-related functions
 
+extern pod_object *pod_map_define_mapping(pod_map *map, pod_mapping *mapping);
 extern pod_object *pod_map_define(pod_map *map, pod_string *key, pod_object *v);
 extern pod_mapping *pod_map_lookup_mapping(pod_map *map, pod_string *key);
 extern pod_object *pod_map_lookup(pod_map *map, pod_string *key);

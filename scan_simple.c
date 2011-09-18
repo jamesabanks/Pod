@@ -1,4 +1,4 @@
-#include <scanner.h>
+#include "scan.h"
 /*
     {   '\t',   0,              stream_start }
     {   '\n',   0,              stream_start }
@@ -41,7 +41,7 @@ state = new_state
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-int scan_simple(pod_stream *stream, pod_char_t c, pod_object **object)
+int scan_simple(pod_stream *stream, pod_char_t c)
 {
     int warning;
 

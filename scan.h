@@ -1,6 +1,8 @@
 #ifndef INCLUDE_POD_SCAN_H
 #define INCLUDE_POD_SCAN_H
 
+#include "pod_stream.h"
+
 
 
 enum boolean {
