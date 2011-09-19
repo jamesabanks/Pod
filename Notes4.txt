@@ -2,6 +2,7 @@ Need to test pod_map_define_mapping.
 Need to get the warning id from subcalls (eg, warning = pod_stream_add_token...)
 Need to change any (especially the parser) "." to "".
 Need to fill out warnings, ie give them ids, messages, etc.
-Figure out and implement output scheme.
 Figure out and implement input scheme. (Haven't I done this yet?)
+Figure out and implement output scheme.
+Make "c" (current character) a part of the pod_stream struct.
 
