@@ -2,7 +2,73 @@ Need to test pod_map_define_mapping.
 Need to get the warning id from subcalls (eg, warning = pod_stream_add_token...)
 Need to change any (especially the parser) "." to "".
 Need to fill out warnings, ie give them ids, messages, etc.
-Figure out and implement input scheme. (Haven't I done this yet?)
-Figure out and implement output scheme.
-Make "c" (current character) a part of the pod_stream struct.
 
+Figure out and implement input scheme. (Haven't I done this yet?)
+    int pod_read(stream, pod_object **object)
+    {
+        read whatever from the input (blocking and multiple bytes if necessary)
+            what if input closes?
+        covert to pod_char_t
+        warning = pod_stream_add_char(stream, c)
+        --------
+        somewhere else...
+            if (stream->process_pod == NULL) {
+                stream->results = pod;
+            } else {
+                stream->process_pod(stream, pod);
+            }
+        --------
+        process warning
+            what if warning indicates input should be closed?
+        if the results member is non-zero,
+            return.
+        if c is ,
+            return
+        read next
+    }
+    
+Figure out and implement output scheme.
+    int pod_write(stream, pod_object *object, int autodestroy)
+    {
+        This is recursive-ish...
+    
+        if its a string
+            print "
+            loop
+                if its printable, print it
+                if its linefeed, print \n
+                if its return, print \r
+                if its tab, print \t
+                if its something else, print \code\
+            until nothing left
+            print "
+        if its a list
+            print {
+            loop
+                print object
+            until nothing left
+            print }
+        if its a mapping
+            print object key (string)
+            print =
+            print object value (string, list, map)
+        if its a map
+            print <
+            loop
+                print object mapping
+            until nothing left
+            print >
+        // maybe have pod_destructive_write?
+        // if autodestroy, destroy object
+    }
+
+    print function:
+        convert pod_char_t to whatever
+        put whatever on the output
+            what if output closes?
+
+    what about various restrictions, etc. ?
+    
+Make "c" (current character) a part of the pod_stream struct.
+Do I want a map object?  What is wrong with just a list?  It isn't pod's point
+    to decide that a structure should only have mappings, is it?
