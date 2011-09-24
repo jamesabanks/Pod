@@ -290,3 +290,172 @@ void pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
     //   at character xxxx (line xxx, column xx)
     //   message from pod_stream.c, line xxx
 }
+
+
+
+    // pod_stream_read
+    //
+    // Read a pod from a file descriptor.
+
+int pod_stream_read(pod_stream *stream, pod_object **object)
+{
+    pod_char_t c;
+    int finished;
+    int in;
+    ssize_t num_bytes;
+
+    finished = false;
+    while (!finished) {
+        in = 0;
+        // read whatever from the input (blocking and multiple bytes if
+        // necessary)
+        //   what if input closes?
+        num_bytes = read(fd, &in, 1);
+        if (num_bytes == 1) {
+            c = (pod_char_t) in;
+            warning = pod_stream_add_char(stream, c)
+            // handle warning
+            //   what if warning indicates input should be closed?
+            if (stream->result_pod != NULL) {
+                &object = stream->result_pod;
+                finished = true;
+        `   }
+            if (c == '') {
+                // I was going to say "finished = true".  What about when there
+                // is no object?  Should I even worry about this here?
+                // Probably not.
+            }
+        } else if (num_bytes == 0) {
+            // EOF
+            // What does pod_stream_terminate do again?  I think it flushed the
+            // stream.  Does it close the fd?  Does it set the stream state?
+            pod_stream_terminate(stream, object);
+            finished = true;
+        }
+        if (num_bytes < 0) {
+            // EAGAIN, EWOULDBLOCK  return error to caller.
+            // EBADF bad fd
+            // EFAULT shouldn't happen (the buffer is the "in" variable)
+            // EINTR fine, just do it again
+            // EINVALID return error to caller
+            // EIO return to caller
+            // EISDIR return to caller
+            // anything else, return to caller
+        }
+    }
+
+    return something;
+}
+
+
+
+int pod_stream_write_char(stream, pod_char_t c)
+{
+    int finished;
+    ssize_t num_written;
+    int out;
+
+    // This is the conversion.
+    out = (int) c;
+    finished = false;
+    while (!finished) {
+        num_written = write(fd, &out, 1);
+        if (num_written > 1) {
+            finished = true;
+        } else if (num_written < 0) {
+            // TODO error
+        }
+    }
+
+    return something;
+}
+    
+
+
+    // pod_stream_write
+    //
+    // Write a pod to a file descriptor
+
+int pod_stream_write(pod_stream *stream, pod_object *object)
+{
+    pod_char_t c;
+    size_t index;
+    pod_string *string;
+
+    // pretty print version?
+    if (object == NULL) // don't pass NULL!  This should be ASSERT only (?)
+
+    switch (object->type) {
+        case POD_STRING_TYPE:
+            string = (pod_string *) object;
+            pod_stream_write_char(stream, '"');
+            for (index = 0; index < string->used; index++) {
+                c = string->buffer[index];
+                if (c is printable) {
+                    pod_stream_write_char(stream, c);
+                } else if (c is linefeed) {
+                    pod_stream_write_char(stream, 10);
+                } else if (c is carriage_return) {
+                    pod_stream_write_char(stream, 13);
+                } else if (c is tab) {
+                    pod_stream_write_char(stream, 9);
+                } else {
+                    pod_stream_write_char(stream, '\\');
+                    if (c == 0) {
+                        pod_stream_write_char(stream, '0');
+                    } else {
+                        while (c != 0) {
+                            digit = c & 0xf;
+                            c << 4;
+                            if (digit < 10) {
+                                pod_stream_write_char(stream, '0' + digit);
+                            } else {
+                                digit -= 10;
+                                pod_stream_write_char(stream, 'a' + digit);
+                        }
+                    }
+                    pod_stream_write_char(stream, '\\');
+                }
+            }
+            pod_stream_write_char(stream, '"');
+            break;
+        case POD_LIST_TYPE:
+            list = (pod_list *) object;
+            pod_stream_write_char(stream, '{');
+            next_object = first_object_in_list;
+            while (more objects(haven't reached list node yet)) {
+                sub_object = next object;
+                pod_stream_write(stream, object)
+            }
+            pod_stream_write_char(stream, '}');
+            break;
+        case POD_MAPPING_TYPE:
+            mapping = (pod_mapping *) object;
+            pod_stream_write(stream, (pod_object *) mapping->key);
+            pod_stream_write_char(stream, '=');
+            pod_stream_write(stream, mapping->value);
+            break;
+        default:
+            // this is an error, do nothing
+            break;
+    }
+    
+}
+
+
+
+    // pod_stream_default_process_pod
+    //
+    // This is the default was a pod object is processed.  It is put into the
+    // stream object.  From there the programmer can get it and set the
+    // stream->result_pod back to NULL.
+
+void pod_stream_default_process_pod(pod_stream *stream, pod_object *object)
+{
+    // if (stream->process_pod == NULL) {
+    //     stream->results = pod;
+    // } else {
+    //     stream->process_pod(stream, pod);
+    // }
+    stream->result_pod = object;
+}

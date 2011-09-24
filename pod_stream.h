@@ -50,6 +50,8 @@ struct pod_stream {
     int escape_max_size;    // = sizeof(pod_char_t) * 8;
     pod_char_t escape_value;
 
+    pod_object *result_pod;
+
     size_t blurb_size;
     size_t max_blurb_size;   // maximum blurb size
 
