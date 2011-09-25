@@ -62,6 +62,17 @@ struct pod_stream {
     int pod_errors;       // number of errors since pod beginning
     int max_pod_errors;   // max number of errors since pod beginning
 
+    int read_fd;
+    int write_fd;
+    size_t read_buffer_max;     // default to 128 (arbitrary)
+    size_t write_buffer_max;    // default to 128 (arbitrary)
+    char *read_buffer;          // allocate at initialize time
+    char *write_buffer;         // allocate at initialize time
+    size_t read_buffer_used;    // default to 0
+    size_t write_buffer_used;   // default to 0
+    size_t read_buffer_index;   // initialize to 0
+    size_t write_buffer_index;  // initialize to 0
+
 //    work buffer (for strings) (two times max string size?)
 //    link endian-ness: I don't think endianess is Pod's problem, except maybe
 //        in blurbs.

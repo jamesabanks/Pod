@@ -73,4 +73,9 @@ Figure out and implement output scheme.
     
 Make "c" (current character) a part of the pod_stream struct.
 Do I want a map object?  What is wrong with just a list?  It isn't pod's point
-    to decide that a structure should only have mappings, is it?
+    to decide that a structure should only have mappings, is it?  No, I don't
+    think it is Pod's job.  I need to remove maps.  I had bad feelings for them
+    being a part of Pod.  I hope that isn't the reason I'm removing them.
+In the read/write functions I haven't put in the necessary code for blurbs.
+I need to add blobs. Example: (8 ffffffffffffffff)  This means 8 bytes of ff.
+

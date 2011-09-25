@@ -301,50 +301,67 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
 {
     pod_char_t c;
     int finished;
-    int in;
-    ssize_t num_bytes;
+    ssize_t read_bytes;
+    int warning;
+
+    ASSERT - stream->read_fd is valid (> -1 ?)
+    ASSERT - stream->read_buffer != NULL
+    ASSERT - stream->read_buffer_size > 0
 
     finished = false;
     while (!finished) {
-        in = 0;
-        // read whatever from the input (blocking and multiple bytes if
-        // necessary)
-        //   what if input closes?
-        num_bytes = read(fd, &in, 1);
-        if (num_bytes == 1) {
-            c = (pod_char_t) in;
-            warning = pod_stream_add_char(stream, c)
-            // handle warning
-            //   what if warning indicates input should be closed?
-            if (stream->result_pod != NULL) {
-                &object = stream->result_pod;
-                finished = true;
-        `   }
-            if (c == '') {
-                // I was going to say "finished = true".  What about when there
-                // is no object?  Should I even worry about this here?
-                // Probably not.
+        if (stream->read_buffer_index >= stream->read_buffer_used) {
+            read_bytes = read(stream->read_fd,
+                              stream->read_buffer,
+                              stream->read_buffer_size);
+            if (read_bytes == 0) {
+                // TODO EOF
+                // What does pod_stream_terminate do again?  I think it flushed
+                // the stream.  Does it close the fd?  Does it set the stream
+                // state?  And how do you tell the caller the stream has been
+                // closed?
+                ? pod_stream_terminate(stream, object);
+                ? finished = true;
+                ? return something;
+            } else if (num_bytes < 0) {
+                // TODO error
+                // EAGAIN, EWOULDBLOCK  return error to caller.
+                // EBADF bad fd
+                // EFAULT shouldn't happen (the buffer is the "in" variable)
+                // EINTR fine, just do it again
+                // EINVALID return error to caller
+                // EIO return to caller
+                // EISDIR return to caller
+                // anything else, return to caller
+                ? finished = true;
+                ? return something;
+            } else {
+                stream->read_buffer_used = read_bytes;
+                stream->read_buffer_index = 0;
             }
-        } else if (num_bytes == 0) {
-            // EOF
-            // What does pod_stream_terminate do again?  I think it flushed the
-            // stream.  Does it close the fd?  Does it set the stream state?
-            pod_stream_terminate(stream, object);
+        }
+        
+        // Conversions (for example, from UTF8) go here.  There is no
+        // conversion, currently.
+        c = (pod_char_t) stream->read_buffer[stream->read_buffer_index];
+        ++stream->read_buffer_index;
+
+        warning = pod_stream_add_char(stream, c)
+        // handle warning
+        //   what if warning indicates input should be closed?
+        if (stream->result_pod != NULL) {
+            &object = stream->result_pod;
             finished = true;
         }
-        if (num_bytes < 0) {
-            // EAGAIN, EWOULDBLOCK  return error to caller.
-            // EBADF bad fd
-            // EFAULT shouldn't happen (the buffer is the "in" variable)
-            // EINTR fine, just do it again
-            // EINVALID return error to caller
-            // EIO return to caller
-            // EISDIR return to caller
-            // anything else, return to caller
+        if (c == '') {
+            // I was going to say "finished = true".  What about when there
+            // is no object?  Should I even worry about this here?
+            // Probably not.  The return value from the pod_stream_add_char
+            // call should tell me everything I need to know.  I think.
         }
     }
 
-    return something;
+    return warning;
 }
 
 
@@ -354,20 +371,32 @@ int pod_stream_write_char(stream, pod_char_t c)
     int finished;
     ssize_t num_written;
     int out;
+    int warning;
 
-    // This is the conversion.
+    warning = POD_OKAY;
     out = (int) c;
     finished = false;
     while (!finished) {
         num_written = write(fd, &out, 1);
-        if (num_written > 1) {
+        if (num_written > 0) {
+            // This should only ever be 1.
             finished = true;
         } else if (num_written < 0) {
             // TODO error
+            // EAGAIN, EWOULDBLOCK  return error to caller
+            // EBADF bad fd
+            // EFAULT shouldn't happen (the buffer is the "out" variable
+            // EFBIG exceeding file size limit
+            // EINTR fine, just do it again.
+            // EINVAL insuitable for writing
+            // EIO return to caller
+            // ENOSPC no room on device
+            // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
+            // anything else, return to caller
         }
     }
 
-    return something;
+    return warning;
 }
     
 
