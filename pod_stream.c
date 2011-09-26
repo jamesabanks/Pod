@@ -293,20 +293,19 @@ void pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
 
 
 
-    // pod_stream_read
+    // pod_stream_read_char
     //
     // Read a pod from a file descriptor.
 
-int pod_stream_read(pod_stream *stream, pod_object **object)
+int pod_stream_read_char(pod_stream *stream, pod_char_t *c)
 {
-    pod_char_t c;
     int finished;
     ssize_t read_bytes;
     int warning;
 
-    ASSERT - stream->read_fd is valid (> -1 ?)
-    ASSERT - stream->read_buffer != NULL
-    ASSERT - stream->read_buffer_size > 0
+    assert(stream->read_fd > -1);
+    assert(stream->read_buffer != NULL);
+    assert(stream->read_buffer_size > 0);
 
     finished = false;
     while (!finished) {
@@ -315,37 +314,49 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
                               stream->read_buffer,
                               stream->read_buffer_size);
             if (read_bytes == 0) {
+                ? pod_stream_terminate(stream, object);
+                return POD_EOF;
                 // TODO EOF
                 // What does pod_stream_terminate do again?  I think it flushed
                 // the stream.  Does it close the fd?  Does it set the stream
                 // state?  And how do you tell the caller the stream has been
                 // closed?
-                ? pod_stream_terminate(stream, object);
-                ? finished = true;
-                ? return something;
-            } else if (num_bytes < 0) {
+            } else if (read_bytes < 0) {
+                return read_bytes;
                 // TODO error
                 // EAGAIN, EWOULDBLOCK  return error to caller.
-                // EBADF bad fd
-                // EFAULT shouldn't happen (the buffer is the "in" variable)
-                // EINTR fine, just do it again
+                // EBADF bad fd, return to caller
+                // EFAULT return to caller
+                // EINTR fine, just do it again, or do we tell the caller?
                 // EINVALID return error to caller
                 // EIO return to caller
                 // EISDIR return to caller
                 // anything else, return to caller
-                ? finished = true;
-                ? return something;
             } else {
                 stream->read_buffer_used = read_bytes;
                 stream->read_buffer_index = 0;
+                finished = true;
             }
         }
+    }
         
-        // Conversions (for example, from UTF8) go here.  There is no
-        // conversion, currently.
-        c = (pod_char_t) stream->read_buffer[stream->read_buffer_index];
-        ++stream->read_buffer_index;
+    // Conversions (for example, from UTF8) go here.  There is no
+    // conversion, currently.
+    *c = (pod_char_t) stream->read_buffer[stream->read_buffer_index];
+    ++stream->read_buffer_index;
 
+    return warning;
+}
+
+
+
+    // pod_stream_read
+    //
+    // Read a pod from a file descriptor.
+
+
+int pod_stream_read(pod_stream *stream, pod_object **object)
+{
         warning = pod_stream_add_char(stream, c)
         // handle warning
         //   what if warning indicates input should be closed?
