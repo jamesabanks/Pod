@@ -5,6 +5,7 @@
 
 typedef enum pod_warnings {
     POD_OKAY = 0,
+    POD_EOF,
 
     // pod_stream_add_char
     POD_TOO_MANY_WARNINGS = 10,
