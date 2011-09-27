@@ -69,7 +69,7 @@ struct pod_stream {
     char *read_buffer;          // allocate at initialize time
     char *write_buffer;         // allocate at initialize time
     size_t read_buffer_used;    // default to 0
-    size_t write_buffer_used;   // default to 0
+    size_t write_buffer_sent;   // default to 0
     size_t read_buffer_index;   // initialize to 0
     size_t write_buffer_index;  // initialize to 0
 

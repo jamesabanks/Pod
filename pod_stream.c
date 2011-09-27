@@ -295,81 +295,91 @@ void pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
 
     // pod_stream_read_char
     //
-    // Read a pod from a file descriptor.
+    // Read a byte from a file descriptor and convert it to a pod_char_t.
+    //
+    // Returns:
+    //      < 0         An I/O error, what the OS returns.
+    //      POD_OKAY    Successfully got a character.
+    //      POD_EOF     At end of file, no character
 
 int pod_stream_read_char(pod_stream *stream, pod_char_t *c)
 {
-    int finished;
     ssize_t read_bytes;
-    int warning;
 
     assert(stream->read_fd > -1);
     assert(stream->read_buffer != NULL);
     assert(stream->read_buffer_size > 0);
 
-    finished = false;
-    while (!finished) {
-        if (stream->read_buffer_index >= stream->read_buffer_used) {
-            read_bytes = read(stream->read_fd,
-                              stream->read_buffer,
-                              stream->read_buffer_size);
-            if (read_bytes == 0) {
-                ? pod_stream_terminate(stream, object);
-                return POD_EOF;
-                // TODO EOF
-                // What does pod_stream_terminate do again?  I think it flushed
-                // the stream.  Does it close the fd?  Does it set the stream
-                // state?  And how do you tell the caller the stream has been
-                // closed?
-            } else if (read_bytes < 0) {
-                return read_bytes;
-                // TODO error
-                // EAGAIN, EWOULDBLOCK  return error to caller.
-                // EBADF bad fd, return to caller
-                // EFAULT return to caller
-                // EINTR fine, just do it again, or do we tell the caller?
-                // EINVALID return error to caller
-                // EIO return to caller
-                // EISDIR return to caller
-                // anything else, return to caller
-            } else {
-                stream->read_buffer_used = read_bytes;
-                stream->read_buffer_index = 0;
-                finished = true;
-            }
+    if (stream->read_buffer_index >= stream->read_buffer_used) {
+        read_bytes = read(stream->read_fd,
+                          stream->read_buffer,
+                          stream->read_buffer_size);
+        if (read_bytes == 0) {
+            return POD_EOF;
+            // DONE EOF
+            // What does pod_stream_terminate do again?  I think it flushed
+            // the stream.  Does it close the fd?  Does it set the stream
+            // state?  And how do you tell the caller the stream has been
+            // closed?
+        } else if (read_bytes < 0) {
+            return read_bytes;
+            // DONE error
+            // EAGAIN, EWOULDBLOCK  return error to caller.
+            // EBADF bad fd, return to caller
+            // EFAULT return to caller
+            // EINTR fine, just do it again, or do we tell the caller?
+            // EINVALID return error to caller
+            // EIO return to caller
+            // EISDIR return to caller
+            // anything else, return to caller
+        } else {
+            stream->read_buffer_used = read_bytes;
+            stream->read_buffer_index = 0;
         }
     }
         
-    // Conversions (for example, from UTF8) go here.  There is no
+    // Conversions (for example, from UTF8) would go here.  There is no
     // conversion, currently.
     *c = (pod_char_t) stream->read_buffer[stream->read_buffer_index];
     ++stream->read_buffer_index;
 
-    return warning;
+    return POD_OKAY;
 }
 
 
 
     // pod_stream_read
     //
-    // Read a pod from a file descriptor.
-
+    // Read a pod.
 
 int pod_stream_read(pod_stream *stream, pod_object **object)
 {
-        warning = pod_stream_add_char(stream, c)
-        // handle warning
-        //   what if warning indicates input should be closed?
-        if (stream->result_pod != NULL) {
-            &object = stream->result_pod;
+    pod_char_t c;
+    int finished;
+    int warning;
+
+    finished = false;
+    while (! finished) {
+        warning = pod_stream_read_char(stream, &c);
+        if (warning != 0) {
             finished = true;
+        } else {
+            warning = pod_stream_add_char(stream, c);
+            // handle warning
+            //   ignore warning, mostly, but what if warning indicates input
+            //   should be closed?  Especially if security rules are violated?
+            if (stream->result_pod != NULL) {
+                &object = stream->result_pod;
+                stream->result_pod = NULL;
+                finished = true;
+            }
         }
-        if (c == '') {
+            // if (c == '') {
             // I was going to say "finished = true".  What about when there
             // is no object?  Should I even worry about this here?
             // Probably not.  The return value from the pod_stream_add_char
             // call should tell me everything I need to know.  I think.
-        }
+            // }
     }
 
     return warning;
@@ -379,33 +389,54 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
 
 int pod_stream_write_char(stream, pod_char_t c)
 {
-    int finished;
-    ssize_t num_written;
-    int out;
+    ssize_t written_bytes;
     int warning;
+    char buffer;
+
+    assert(stream->write_fd > -1);
+    assert(stream->write_buffer != NULL);
+    assert(stream->write_buffer_size > 0);
 
     warning = POD_OKAY;
-    out = (int) c;
-    finished = false;
-    while (!finished) {
-        num_written = write(fd, &out, 1);
-        if (num_written > 0) {
-            // This should only ever be 1.
-            finished = true;
-        } else if (num_written < 0) {
-            // TODO error
-            // EAGAIN, EWOULDBLOCK  return error to caller
-            // EBADF bad fd
-            // EFAULT shouldn't happen (the buffer is the "out" variable
-            // EFBIG exceeding file size limit
-            // EINTR fine, just do it again.
-            // EINVAL insuitable for writing
-            // EIO return to caller
-            // ENOSPC no room on device
-            // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
-            // anything else, return to caller
+
+    // if there is no room in the buffer, flush it (ie, write it all out)
+    //   if there is an error then, return a pod write buffer is full error
+    
+    // Because I can assume that the buffer size is at least 1, I can write
+    // to the buffer before I see if I have to flush it.
+    stream->write_buffer[stream->write_buffer_index] = (char) c;
+    ++stream->write_buffer_index;
+
+    // If the buffer is now full, write it out, return any error that occurs
+    if (stream->write_buffer_index == stream->write_buffer_size) {
+        buffer = stream->write_buffer;
+        stream->write_buffer_sent = 0;
+        while (stream->write_buffer_sent < stream->write_buffer_size) {
+            written_bytes = write(stream->write_fd,
+                                  stream->write_buffer,
+                                  stream->write_buffer_size);
+            if (written_bytes != stream->write_buffer_size) {
+                now what?
+                buffer += written_bytes;
+                bytes_left -= written_bytes;
+            } else
+            if (written_bytes > 0) {
+                stream->write_buffer_sent += written_bytes;
+            } else if (written_bytes < 0) {
+                // TODO error
+                // EAGAIN, EWOULDBLOCK  return error to caller
+                // EBADF bad fd
+                // EFAULT shouldn't happen (the buffer is the "out" variable
+                // EFBIG exceeding file size limit
+                // EINTR fine, just do it again.
+                // EINVAL insuitable for writing
+                // EIO return to caller
+                // ENOSPC no room on device
+                // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
+                // anything else, return to caller
+            }
         }
-    }
+    }    
 
     return warning;
 }
