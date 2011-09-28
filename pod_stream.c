@@ -387,7 +387,22 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
 
 
 
-int pod_stream_write_char(stream, pod_char_t c)
+circular buffer:
+    put
+        if head != (tail - 1) % size, put head, head = (head + 1) % size
+        else overflow
+    get
+        if head != tail, get tail, tail = (tail + 1) % size
+        else underflow
+
+int pod_stream_write_buffer(pod_stream *stream) {
+    write buffer to stream, guaranteeing either a write of n characters or an
+    error.  No zero length non-error writes.
+}
+
+
+
+int pod_stream_write_char(pod_stream *stream, pod_char_t c)
 {
     ssize_t written_bytes;
     int warning;
@@ -397,17 +412,34 @@ int pod_stream_write_char(stream, pod_char_t c)
     assert(stream->write_buffer != NULL);
     assert(stream->write_buffer_size > 0);
 
-    warning = POD_OKAY;
-
     // if there is no room in the buffer, flush it (ie, write it all out)
     //   if there is an error then, return a pod write buffer is full error
+    if (head == (tail - 1)) {
+        pod_stream_write_buffer(stream);
+        if (head == (tail - 1)) {
+            return POD_write_buffer_is_full;
+        }
+    }
     
+    warning = POD_OKAY;
+
     // Because I can assume that the buffer size is at least 1, I can write
     // to the buffer before I see if I have to flush it.
-    stream->write_buffer[stream->write_buffer_index] = (char) c;
-    ++stream->write_buffer_index;
+    put c into buffer
+    buffer[head] = c;
+    head = (++head) % size;
+
+    - stream->write_buffer[stream->write_buffer_index] = (char) c;
+    - ++stream->write_buffer_index;
 
     // If the buffer is now full, write it out, return any error that occurs
+    if (head == (tail - 1)) {
+        warning = pod_stream_write_buffer(stream);
+    }
+
+    return warning;
+}
+
     if (stream->write_buffer_index == stream->write_buffer_size) {
         buffer = stream->write_buffer;
         stream->write_buffer_sent = 0;
