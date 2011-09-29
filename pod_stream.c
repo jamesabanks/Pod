@@ -387,74 +387,150 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
 
 
 
-circular buffer:
-    put
-        if head != (tail - 1) % size, put head, head = (head + 1) % size
-        else overflow
-    get
-        if head != tail, get tail, tail = (tail + 1) % size
-        else underflow
+    //  circular buffer:
+    //
+    //  put
+    //      if head != (tail - 1) % size, put head, head = (head + 1) % size
+    //      else overflow
+    //  get
+    //      if head != tail, get tail, tail = (tail + 1) % size
+    //      else underflow
 
-int pod_stream_write_buffer(pod_stream *stream) {
-    write buffer to stream, guaranteeing either a write of n characters or an
-    error.  No zero length non-error writes.
+
+
+    // pod_stream_write_buffer
+    //
+    // Write the write_buffer to an fd, until everything has been written or
+    // write (2) returns an error.  If the buffer is empty, this function a
+    // always succeeds) or an error.  If this function returns an error, a
+    // partial write may have occured with the unwritten bytes still in the
+    // buffer.  This routine keeps calling write (2) until the entire buffer
+    // is written or an error is encountered.
+    //
+    // Returns:
+    //      POD_OKAY        The buffer was written.
+    //      POD_OS_ERROR    The OS returned an error from the write call.  The
+    //                      error is stored in os_error.  The buffer may or may
+    //                      not have more in it.
+
+int pod_stream_write_buffer(pod_stream *stream, int *os_error)
+{
+    int finished;
+    size_t bytes;
+    ssize_t num_written;
+    int warning;
+
+    assert(stream != NULL);
+    assert(stream->fd > 0);
+    assert(stream->w_buffer != NULL);
+    assert(stream->w_size > 0);
+    assert(stream->w_head >= 0);
+    assert(stream->w_head < stream->w_size);
+    assert(stream->w_tail >= 0);
+    assert(stream->w_tail < stream->w_size);
+
+    warning = POD_OKAY
+    (*os_error) = 0;
+    finished = false;
+    while (! finished) {
+        if (stream->w_head > stream->w_tail) {
+            // Write the case where the data doesn't circle back around.
+            // For example: [...11111111..]
+            bytes = stream->w_head - stream->w_tail;
+            num_written = write(stream->fd,
+                                &(stream->w_buffer[tail]),
+                                bytes);
+            if (num_written > 0) {
+                stream->w_tail += num_written;
+            } else if (num_written < 0) {
+                (*os_error) = errno;
+                warning = POD_OS_ERROR;
+                finished = true;
+            }
+        } else if (stream->w_head < stream->w_tail) {
+            // Write the case where the data circles back around.  If there is
+            // more to write, it will be caught the next time through the loop.
+            // For example: [2222......111] (write 1s first, 2s second)
+            bytes = stream->w_size - stream->w_tail;
+            num_written = write(stream->fd,
+                                &(stream->w_buffer[tail]),
+                                bytes);
+            if (num_written > 0) {
+                stream->w_tail = (stream->w_tail + num_written)
+                                     && stream->w_mask;
+            } else if (num_written < 0) {
+                (*os_error) = errno;
+                warning = POD_OS_ERROR;
+                finished = true;
+            }
+        }
+        if (stream->w_head == stream->w_tail) {
+            // The buffer is empty.
+            finished = true;
+        }
+    }
+ 
+    return warning;
 }
 
 
 
-int pod_stream_write_char(pod_stream *stream, pod_char_t c)
+    // pod_stream_write_char
+    //
+    // Convert a pod_char_t to an ASCII value and put it in the write buffer.
+    // If the buffer is full, call pod_stream_write_buffer.  This is also a
+    // basic example of how to write a pod_char_t.
+    //
+    // Returns:
+    //      POD_OKAY    The character was put in the buffer was written.
+    //      error       This error was encountered while writing the buffer.
+    //                    Check the head and tail variables to see whats left.
+
+int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_error)
 {
-    ssize_t written_bytes;
-    int warning;
     char buffer;
+    char byte;
+    int warning;
+    ssize_t written_bytes;
 
-    assert(stream->write_fd > -1);
-    assert(stream->write_buffer != NULL);
-    assert(stream->write_buffer_size > 0);
+    assert(stream != NULL);
+    assert(stream->fd > 0);
+    assert(stream->w_buffer != NULL);
+    assert(stream->w_size > 0);
+    assert(stream->w_head >= 0);
+    assert(stream->w_head < stream->w_size);
+    assert(stream->w_tail >= 0);
+    assert(stream->w_tail < stream->w_size);
 
-    // if there is no room in the buffer, flush it (ie, write it all out)
-    //   if there is an error then, return a pod write buffer is full error
-    if (head == (tail - 1)) {
-        pod_stream_write_buffer(stream);
-        if (head == (tail - 1)) {
-            return POD_write_buffer_is_full;
+    // Convert c into a char (byte).
+    byte = c & 0x7f;
+
+    if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
+        // If the buffer is full, try to write it to the fd.
+        pod_stream_write_buffer(stream, os_error);
+        if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
+            // If the buffer is still full, return
+            return POD_BUFFER_IS_FULL;
         }
     }
     
-    warning = POD_OKAY;
-
     // Because I can assume that the buffer size is at least 1, I can write
-    // to the buffer before I see if I have to flush it.
-    put c into buffer
-    buffer[head] = c;
-    head = (++head) % size;
+    // to the buffer before I see if I have to write it out.  For UTF-8, one
+    // should have a buffer of at least 6, which translates to 8 for Pod.
 
-    - stream->write_buffer[stream->write_buffer_index] = (char) c;
-    - ++stream->write_buffer_index;
+    // Put the byte into the buffer
+    stream->w_buffer[stream->w_head] = byte;
+    stream->w_head = (stream->w_head + 1) && stream->w_mask;
 
     // If the buffer is now full, write it out, return any error that occurs
-    if (head == (tail - 1)) {
-        warning = pod_stream_write_buffer(stream);
+    warning = POD_OKAY;
+
+    if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
+        warning = pod_stream_write_buffer(stream, os_error);
     }
 
     return warning;
 }
-
-    if (stream->write_buffer_index == stream->write_buffer_size) {
-        buffer = stream->write_buffer;
-        stream->write_buffer_sent = 0;
-        while (stream->write_buffer_sent < stream->write_buffer_size) {
-            written_bytes = write(stream->write_fd,
-                                  stream->write_buffer,
-                                  stream->write_buffer_size);
-            if (written_bytes != stream->write_buffer_size) {
-                now what?
-                buffer += written_bytes;
-                bytes_left -= written_bytes;
-            } else
-            if (written_bytes > 0) {
-                stream->write_buffer_sent += written_bytes;
-            } else if (written_bytes < 0) {
                 // TODO error
                 // EAGAIN, EWOULDBLOCK  return error to caller
                 // EBADF bad fd
@@ -466,18 +542,12 @@ int pod_stream_write_char(pod_stream *stream, pod_char_t c)
                 // ENOSPC no room on device
                 // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
                 // anything else, return to caller
-            }
-        }
-    }    
-
-    return warning;
-}
     
 
 
     // pod_stream_write
     //
-    // Write a pod to a file descriptor
+    // Write a pod to a stream.
 
 int pod_stream_write(pod_stream *stream, pod_object *object)
 {
@@ -486,7 +556,8 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
     pod_string *string;
 
     // pretty print version?
-    if (object == NULL) // don't pass NULL!  This should be ASSERT only (?)
+
+    assert(object != NULL);
 
     switch (object->type) {
         case POD_STRING_TYPE:
