@@ -13,6 +13,7 @@
 
 
 typedef void pod_stream_process_pod(pod_object *object);
+typedef int pod_stream_handle_write_error(pod_stream *stream, int error);
 
 
 // Next is pod_stream.  This is a struct that holds information about what to
@@ -75,6 +76,8 @@ struct pod_stream {
     size_t w_mask;          // initialize from w_size, eg. 128 it would be 7f
     size_t w_size;          // default to 128 (arbitrary)
     size_t w_tail;          // initialize to 0
+    pod_stream_handle_write_error w_handler;    // default to default write
+                                                // error handler
 
 //    work buffer (for strings) (two times max string size?)
 //    link endian-ness: I don't think endianess is Pod's problem, except maybe

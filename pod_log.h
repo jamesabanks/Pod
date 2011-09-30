@@ -6,6 +6,7 @@
 typedef enum pod_warnings {
     POD_OKAY = 0,
     POD_OS_ERROR,
+    POD_ABORT,
     POD_EOF,
     POD_BUFFER_IS_FULL,
 

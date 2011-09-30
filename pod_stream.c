@@ -402,18 +402,17 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
     //
     // Write the write_buffer to an fd, until everything has been written or
     // write (2) returns an error.  If the buffer is empty, this function a
-    // always succeeds) or an error.  If this function returns an error, a
-    // partial write may have occured with the unwritten bytes still in the
-    // buffer.  This routine keeps calling write (2) until the entire buffer
-    // is written or an error is encountered.
+    // always succeeds).  If a write returns an error, the error is passed to
+    // the error handler.  If the error handler returns POD_ABORT, the routine
+    // gives up and passed back POD_ABORT.  Otherwise it returns POD_OKAY.  I'm
+    // guessing that a partial read is not an error.
     //
     // Returns:
-    //      POD_OKAY        The buffer was written.
-    //      POD_OS_ERROR    The OS returned an error from the write call.  The
-    //                      error is stored in os_error.  The buffer may or may
-    //                      not have more in it.
+    //      POD_OKAY    The buffer was written.
+    //      POD_ABORT   An error occured that the routine doesn't know how to
+    //                      recover from.  Aborts the pod.
 
-int pod_stream_write_buffer(pod_stream *stream, int *os_error)
+int pod_stream_write_buffer(pod_stream *stream)
 {
     int finished;
     size_t bytes;
@@ -443,9 +442,12 @@ int pod_stream_write_buffer(pod_stream *stream, int *os_error)
             if (num_written > 0) {
                 stream->w_tail += num_written;
             } else if (num_written < 0) {
-                (*os_error) = errno;
-                warning = POD_OS_ERROR;
-                finished = true;
+                if (w_handler != NULL) {
+                    warning = w_handler(stream, errno);
+                }
+                if (warning == POD_ABORT) {
+                    finished = true;
+                }
             }
         } else if (stream->w_head < stream->w_tail) {
             // Write the case where the data circles back around.  If there is
@@ -459,9 +461,12 @@ int pod_stream_write_buffer(pod_stream *stream, int *os_error)
                 stream->w_tail = (stream->w_tail + num_written)
                                      && stream->w_mask;
             } else if (num_written < 0) {
-                (*os_error) = errno;
-                warning = POD_OS_ERROR;
-                finished = true;
+                if (w_handler != NULL) {
+                    warning = w_handler(stream, errno);
+                }
+                if (warning == POD_ABORT) {
+                    finished = true;
+                }
             }
         }
         if (stream->w_head == stream->w_tail) {
@@ -502,13 +507,17 @@ int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_error)
     assert(stream->w_tail >= 0);
     assert(stream->w_tail < stream->w_size);
 
-    // Convert c into a char (byte).
+    // Convert c into an ASCII char (7-bit byte).
     byte = c & 0x7f;
 
+    warning = POD_OKAY;
+
     if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
-        // If the buffer is full, try to write it to the fd.
-        pod_stream_write_buffer(stream, os_error);
-        if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
+        // If the buffer is full, try to write it to the stream.
+        warning = pod_stream_write_buffer(stream);
+        if (warning == POD_ABORT) {
+            return POD_ABORT;
+        } else if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
             // If the buffer is still full, return
             return POD_BUFFER_IS_FULL;
         }
@@ -523,26 +532,56 @@ int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_error)
     stream->w_head = (stream->w_head + 1) && stream->w_mask;
 
     // If the buffer is now full, write it out, return any error that occurs
-    warning = POD_OKAY;
-
     if ((stream->w_head + 1) && stream->w_mask == stream->w_tail) {
         warning = pod_stream_write_buffer(stream, os_error);
     }
 
     return warning;
 }
-                // TODO error
-                // EAGAIN, EWOULDBLOCK  return error to caller
-                // EBADF bad fd
-                // EFAULT shouldn't happen (the buffer is the "out" variable
-                // EFBIG exceeding file size limit
-                // EINTR fine, just do it again.
-                // EINVAL insuitable for writing
-                // EIO return to caller
-                // ENOSPC no room on device
-                // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
-                // anything else, return to caller
     
+
+
+int pod_stream_write_string(pod_stream *stream, pod_string *string)
+{
+    assert(stream != NULL);
+    assert(string != NULL);
+
+    pod_stream_write_char(stream, POD_CHAR_QUOTE);
+    for (index = 0; index < string->used; index++) {
+        c = string->buffer[index];
+        if (POD_CHAR_IS_PRINTING(c)) {
+            pod_stream_write_char(stream, c);
+        } else if (c == POD_CHAR_NEWLINE) {
+            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+            pod_stream_write_char(stream, POD_CHAR('n'));
+        } else if (c == POD_CHAR_RETURN) {
+            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+            pod_stream_write_char(stream, POD_CHAR('r'));
+        } else if (c == POD_CHAR_EOB) {
+            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+            pod_stream_write_char(stream, POD_CHAR('w'));
+        } else {
+            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+            if (c == 0) {
+                pod_stream_write_char(stream, POD_CHAR('0'));
+            } else {
+                while (c != 0) {
+                    digit = c & 0xf;
+                    c >>= 4;
+                    if (digit < 10) {
+                        pod_stream_write_char(stream, POD_CHAR('0' + digit));
+                    } else {
+                        digit -= 10;
+                        pod_stream_write_char(stream, POD_CHAR('a' + digit));
+                    }
+                }
+            }
+            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+        }
+    }
+    pod_stream_write_char(stream, POD_CHAR_QUOTE);
+}
+
 
 
     // pod_stream_write
@@ -614,6 +653,31 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
             break;
     }
     
+}
+
+
+
+int pod_stream_default_write_error_handler(pod_stream *stream, int error)
+{
+// pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
+    // TODO error
+    // EAGAIN, EWOULDBLOCK  return error to caller
+    // EBADF bad fd
+    // EFAULT shouldn't happen (the buffer is the "out" variable
+    // EFBIG exceeding file size limit
+    // EINTR fine, just do it again.
+    // EINVAL insuitable for writing
+    // EIO return to caller
+    // ENOSPC no room on device
+    // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
+    // anything else, return to caller
+    pod_stream_log(stream, 
+                   io error # in stream name, fd #
+                  __FILE__,
+                  __LINE__);
+
+    // This would be a good place to throw an exception.
+    return POD_ABORT;
 }
 
 
