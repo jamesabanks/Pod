@@ -541,10 +541,10 @@ int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_error)
     
 
 
-int pod_stream_write_string(pod_stream *stream, pod_string *string)
+int pod_stream_write_string(pod_stream *stream, pod_marker *marker)
 {
     assert(stream != NULL);
-    assert(string != NULL);
+    assert(marker != NULL);
 
     pod_stream_write_char(stream, POD_CHAR_QUOTE);
     for (index = 0; index < string->used; index++) {
@@ -593,10 +593,91 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
     pod_char_t c;
     size_t index;
     pod_string *string;
+    pod_marker *marker;
+    pod_marker *child_marker;
 
     // pretty print version?
 
     assert(object != NULL);
+
+    if (stream->w_stack is empty) {
+        marker = pod_create_marker();
+        marker->object = object;
+        marker->mark = POD_MARKER_BEGIN;
+        push marker
+    }
+    while not done {
+        marker = peek(w_wstack)
+        object = marker->object;
+        switch (object->type) {
+            case POD_STRING_TYPE:
+                pod_stream_write_string(stream, (pod_string *) object);
+                break;
+            case POD_LIST_TYPE: 
+                list == (pod_list *) object;
+                if (marker->mark == POD_MARKER_BEGIN) {
+                    pod_stream_write_char(POD_CHAR_OPEN_BRACE);
+                    if success {
+                        marker->mark = POD_MARKER_MIDDLE;
+                        marker->next_child = list->header->next;
+                        if (marker->next_child == list->header) {
+                            marker->mark = POD_MARKER_END;
+                        }
+                    }
+                } else if (marker->mark == POD_MARKER_MIDDLE) {
+                    child_marker = pod_create_marker();
+                    child_marker->object = (pod_object *) marker->next_child;
+                    child_marker->mark = POD_MARKER_BEGIN;
+                    push child_marker
+                    marker->next_child = marker->next_child.o.n.next;
+                    if (marker->next_child == list->header) {
+                        marker->mark = POD_MARKER_END;
+                    }
+                } else if (marker->mark == POD_MARKER_END) {
+                    pod_stream_write_char(POD_CHAR_CLOSE_BRACE);
+                    if success {
+                        marker->mark = POD_MARKER_COMPLETE; // not necessary
+                        pop marker;
+                        marker->object = NULL;
+                        pod_destroy_marker(marker);
+                    }
+                }
+                break;
+            case POD_MAPPING_TYPE:
+                mapping = (pod_mapping *) object;
+                if (marker->mark == POD_MARKER_BEGIN) {
+                    child_marker = pod_create_marker();
+                    child_marker->object = (pod_object *) mapping->key;
+                    child_marker->mark = POD_MARKER_BEGIN;
+                    push child_marker
+                    marker->mark == POD_MARKER_MIDDLE;
+                } else if (marker->mark == POD_MARKER_MIDDLE) {
+                    pod_stream_write_char(POD_CHAR_EQUAL);
+                    if success {
+                        marker->mark = POD_MARKER_END;
+                    }
+                } else if (marker->mark == POD_MARKER_END) {
+                    marker = pod_create_marker();
+                    child_marker = pod_create_marker();
+                    child_marker->object = mapping->value;
+                    child_marker->mark = POD_MARKER_BEGIN;
+                    push child_marker
+                    marker->mark == POD_MARKER_COMPLETE;
+                } else if (marker->mark == POD_MARKER_COMPLETE) {
+                    pop marker;
+                    marker->object = NULL;
+                    pod_destroy_marker(marker);
+                }
+                break;
+            default:
+                // error
+                break;
+        }
+        if (w_stack is empty)
+            done;
+        }
+    }
+}
 
     switch (object->type) {
         case POD_STRING_TYPE:
