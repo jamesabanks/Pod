@@ -5,9 +5,15 @@
 
 
 
-#define POD_MARKER_BEGIN    (-1)
-#define POD_MARKER_MIDDLE   (-2)
-#define POD_MARKER_END      (-3)
+typedef enum {
+    POD_MARKER_BEGIN = 1,
+    POD_MARKER_MIDDLE,
+    POD_MARKER_ESCAPE,
+    POD_MARKER_CHAR,
+    POD_MARKER_NULL,
+    POD_MARKER_FINAL,
+    POD_MARKER_END,
+} pod_marker_state_t;
 
 
 
@@ -18,10 +24,12 @@ extern const int POD_MARKER_TYPE;
 
 
 typedef struct pod_marker {
-    pod_object o;
-    pod_object *object;
-    pod_object *next_child;
-    int mark;
+    pod_object          o;
+    pod_marker_state_t  state;
+    pod_object          *object;
+    pod_object          *next_child;
+    int                 index;
+    pod_char_t          escape;
 } pod_marker;
 
 

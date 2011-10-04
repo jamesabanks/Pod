@@ -543,43 +543,107 @@ int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_error)
 
 int pod_stream_write_string(pod_stream *stream, pod_marker *marker)
 {
+    pod_char_t c;
+    int digit;
+    pod_string *string;
+    int warning;
+
     assert(stream != NULL);
     assert(marker != NULL);
 
-    pod_stream_write_char(stream, POD_CHAR_QUOTE);
-    for (index = 0; index < string->used; index++) {
-        c = string->buffer[index];
-        if (POD_CHAR_IS_PRINTING(c)) {
-            pod_stream_write_char(stream, c);
-        } else if (c == POD_CHAR_NEWLINE) {
-            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
-            pod_stream_write_char(stream, POD_CHAR('n'));
-        } else if (c == POD_CHAR_RETURN) {
-            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
-            pod_stream_write_char(stream, POD_CHAR('r'));
-        } else if (c == POD_CHAR_EOB) {
-            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
-            pod_stream_write_char(stream, POD_CHAR('w'));
-        } else {
-            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
-            if (c == 0) {
-                pod_stream_write_char(stream, POD_CHAR('0'));
-            } else {
-                while (c != 0) {
-                    digit = c & 0xf;
-                    c >>= 4;
-                    if (digit < 10) {
-                        pod_stream_write_char(stream, POD_CHAR('0' + digit));
+    string = (pod_string *) marker->object;
+    switch (marker->state) {
+        case POD_MARKER_BEGIN:
+            warning = pod_stream_write_char(stream, POD_CHAR_QUOTE);
+            if (warning == POD_OKAY) {
+                if (string->used > 0) {
+                    marker->state = POD_MARKER_MIDDLE;
+                    marker->index = 0;
+                } else {
+                    marker->state = POD_MARKER_END;
+                }
+            }
+            break;
+        case POD_MARKER_MIDDLE:
+            c = string->buffer[marker->index];
+            if ((! POD_CHAR_IS_PRINTING(c)) || c == POD_CHAR_QUOTE) {
+                warning = pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+                if (warning == POD_OKAY) {
+                    marker->escape = c;
+                    if (c == POD_CHAR_NEWLINE || c == POD_CHAR_RETURN
+                        || c == POD_CHAR_EOB || c == POD_CHAR('"')) {
+                        marker->state = POD_MARKER_ESCAPE;
+                    } else if (c > 0) {
+                        marker->state = POD_MARKER_CHAR;
                     } else {
-                        digit -= 10;
-                        pod_stream_write_char(stream, POD_CHAR('a' + digit));
+                        marker->state = POD_MARKER_NULL;
+                    }
+                }
+            } else {
+                warning = pod_stream_write_char(stream, c);
+                if (warning == POD_OKAY) {
+                    marker->index++;
+                    if (marker->index == string->used) {
+                        marker->state = POD_MARKER_END;
                     }
                 }
             }
-            pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
-        }
+            break;
+        case POD_MARKER_ESCAPE:
+            warning = pod_stream_write_char(stream, marker->escape);
+            if (warning == POD_OKAY) {
+                marker->index++;
+                if (marker->index == string->used) {
+                    marker->state = POD_MARKER_END;
+                } else {
+                    marker->state = POD_MARKER_MIDDLE;
+                }
+            }
+            break;
+        case POD_MARKER_CHAR:
+            digit = marker->escape & 0xf;
+            if (digit < 10) {
+                warning = pod_stream_write_char(stream, POD_CHAR('0' + digit));
+            } else {
+                digit -= 10;
+                warning = pod_stream_write_char(stream, POD_CHAR('a' + digit));
+            }
+            if (warning == POD_OKAY) {
+                marker->escape >>= 4;
+                if (marker->escape == 0) {
+                    marker->state = POD_MARKER_FINAL;
+                }
+            }
+            break;
+        case POD_MARKER_NULL:
+            warning = pod_stream_write_char(stream, POD_CHAR('0'));
+            if (warning == POD_OKAY) {
+                marker->state = POD_MARKER_FINAL;
+            }
+            break;
+        case POD_MARKER_FINAL:
+            warning = pod_stream_write_char(stream, POD_CHAR_BACKSLASH);
+            if (warning == POD_OKAY) {
+                marker->index++;
+                if (marker->index == string->used) {
+                    marker->state = POD_MARKER_END;
+                } else {
+                    marker->state = POD_MARKER_MIDDLE;
+                }
+            }
+            break;
+        case POD_MARKER_END:
+            warning = pod_stream_write_char(stream, POD_CHAR('"');
+            if (warning == POD_OKAY) {
+                marker->state = POD_MARKER_COMPLETE;
+            }
+            break;
+        default:
+            // error
+            break;
     }
-    pod_stream_write_char(stream, POD_CHAR_QUOTE);
+
+    return warning;
 }
 
 
@@ -598,7 +662,11 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
 
     // pretty print version?
 
-    assert(object != NULL);
+    assert(stream != NULL);
+
+    if (object == NULL) {
+        return POD_OKAY;
+    }
 
     if (stream->w_stack is empty) {
         marker = pod_create_marker();
@@ -611,7 +679,7 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
         object = marker->object;
         switch (object->type) {
             case POD_STRING_TYPE:
-                pod_stream_write_string(stream, (pod_string *) object);
+                pod_stream_write_string(stream, marker);
                 break;
             case POD_LIST_TYPE: 
                 list == (pod_list *) object;
