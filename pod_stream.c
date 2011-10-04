@@ -635,11 +635,117 @@ int pod_stream_write_string(pod_stream *stream, pod_marker *marker)
         case POD_MARKER_END:
             warning = pod_stream_write_char(stream, POD_CHAR('"');
             if (warning == POD_OKAY) {
-                marker->state = POD_MARKER_COMPLETE;
+                temp = pod_list_pop(stream->w_stack);
+                assert(temp == marker);
+                temp->object = NULL;
+                assert(temp->next_child == NULL);
+                pod_marker_destroy(temp);
             }
             break;
         default:
             // error
+            assert(0);
+            break;
+    }
+
+    return warning;
+}
+
+
+
+int pod_stream_write_list(pod_stream *stream, pod_marker *marker)
+{
+    pod_char_t c;
+    int digit;
+    pod_list *list;
+    pod_marker *temp;
+    int warning;
+
+    assert(stream != NULL);
+    assert(marker != NULL);
+
+    list = (pod_list *) marker->object;
+    switch (marker->state) {
+        case POD_MARKER_BEGIN:
+            warning = pod_stream_write_char(stream, POD_CHAR('{'));
+            if (warning == POD_OKAY) {
+                marker->next_child = list->header.next;
+                if (marker->next_child != &(list->header)) {
+                    marker->state = POD_MARKER_MIDDLE;
+                } else {
+                    marker->state = POD_MARKER_END;
+                }
+            }
+            break;
+        case POD_MARKER_MIDDLE:
+            temp = pod_create_marker();
+            temp->object = (pod_object *) marker->next_child;
+            temp->state = POD_MARKER_BEGIN;
+            pod_list_push(stream->w_stack, temp);
+            marker->next_child = marker->next_child.o.n.next;
+            if (marker->next_child == &(list->header)) {
+                marker->state = POD_MARKER_END;
+            }
+        case POD_MARKER_END:
+            warning = pod_stream_write_char(POD_CHAR('}'));
+            if (warning == POD_OKAY) {
+                temp = pod_list_pop(stream->w_stack);
+                assert(temp == marker);
+                temp->object = NULL;
+                temp->next_child = NULL;
+                pod_marker_destroy(temp);
+            }
+            break;
+        default:
+            // error
+            assert(0);
+            break;
+    }
+
+    return warning;
+}
+
+
+
+int pod_stream_write_mapping(pod_stream *stream, pod_marker *marker)
+{
+    pod_mapping *mapping;
+    pod_marker *temp;
+    int warning;
+
+    warning = POD_OKAY;
+    mapping = (pod_mapping *) marker->object;
+    switch (marker->state) {
+        case POD_MARKER_BEGIN:
+            temp = pod_marker_create();
+            temp->object = (pod_object *) mapping->key;
+            temp->state = POD_MARKER_BEGIN;
+            pod_list_push(stream->w_stack, temp);
+            marker->state = POD_MARKER_MIDDLE;
+            break;
+        case POD_MARKER_MIDDLE:
+            warning = pod_stream_write_char(POD_CHAR('='));
+            if (warning == POD_OKAY)
+                marker->state = POD_MARKER_END;
+            }
+            break;
+        case POD_MARKER_END:
+            temp = pod_marker_create();
+            temp->object = mapping->value;
+            temp->state = POD_MARKER_BEGIN;
+            pod_list_push(stream->w_stack, temp);
+            marker->state = POD_MARKER_COMPLETE;
+            break;
+        case POD_MARKER_COMPLETE:
+            temp = pod_list_pop(stream->w_stack);
+            assert(marker == temp);
+            temp->object = NULL;
+            assert(temp->next_child == NULL);
+            pod_marker_destroy(temp);
+            break;
+        default:
+            // error
+            assert(0);
             break;
     }
 
@@ -654,11 +760,9 @@ int pod_stream_write_string(pod_stream *stream, pod_marker *marker)
 
 int pod_stream_write(pod_stream *stream, pod_object *object)
 {
-    pod_char_t c;
-    size_t index;
-    pod_string *string;
+    int finished;
     pod_marker *marker;
-    pod_marker *child_marker;
+    int warning;
 
     // pretty print version?
 
@@ -668,140 +772,37 @@ int pod_stream_write(pod_stream *stream, pod_object *object)
         return POD_OKAY;
     }
 
-    if (stream->w_stack is empty) {
-        marker = pod_create_marker();
+    if (pod_list_is_empty(stream->w_stack)) {
+        marker = pod_marker_create();
         marker->object = object;
-        marker->mark = POD_MARKER_BEGIN;
-        push marker
+        marker->state = POD_MARKER_BEGIN;
+        pod_list_push(stream->w_stack, marker);
     }
-    while not done {
-        marker = peek(w_wstack)
-        object = marker->object;
-        switch (object->type) {
+    finished = false;
+    warning = POD_OKAY;
+    while (! finished) {
+        marker = pod_list_peek(stream->w_stack)
+        switch (marker->object->type) {
             case POD_STRING_TYPE:
-                pod_stream_write_string(stream, marker);
+                warning = pod_stream_write_string(stream, marker);
                 break;
             case POD_LIST_TYPE: 
-                list == (pod_list *) object;
-                if (marker->mark == POD_MARKER_BEGIN) {
-                    pod_stream_write_char(POD_CHAR_OPEN_BRACE);
-                    if success {
-                        marker->mark = POD_MARKER_MIDDLE;
-                        marker->next_child = list->header->next;
-                        if (marker->next_child == list->header) {
-                            marker->mark = POD_MARKER_END;
-                        }
-                    }
-                } else if (marker->mark == POD_MARKER_MIDDLE) {
-                    child_marker = pod_create_marker();
-                    child_marker->object = (pod_object *) marker->next_child;
-                    child_marker->mark = POD_MARKER_BEGIN;
-                    push child_marker
-                    marker->next_child = marker->next_child.o.n.next;
-                    if (marker->next_child == list->header) {
-                        marker->mark = POD_MARKER_END;
-                    }
-                } else if (marker->mark == POD_MARKER_END) {
-                    pod_stream_write_char(POD_CHAR_CLOSE_BRACE);
-                    if success {
-                        marker->mark = POD_MARKER_COMPLETE; // not necessary
-                        pop marker;
-                        marker->object = NULL;
-                        pod_destroy_marker(marker);
-                    }
-                }
+                warning = pod_stream_write_list(stream, marker);
                 break;
             case POD_MAPPING_TYPE:
-                mapping = (pod_mapping *) object;
-                if (marker->mark == POD_MARKER_BEGIN) {
-                    child_marker = pod_create_marker();
-                    child_marker->object = (pod_object *) mapping->key;
-                    child_marker->mark = POD_MARKER_BEGIN;
-                    push child_marker
-                    marker->mark == POD_MARKER_MIDDLE;
-                } else if (marker->mark == POD_MARKER_MIDDLE) {
-                    pod_stream_write_char(POD_CHAR_EQUAL);
-                    if success {
-                        marker->mark = POD_MARKER_END;
-                    }
-                } else if (marker->mark == POD_MARKER_END) {
-                    marker = pod_create_marker();
-                    child_marker = pod_create_marker();
-                    child_marker->object = mapping->value;
-                    child_marker->mark = POD_MARKER_BEGIN;
-                    push child_marker
-                    marker->mark == POD_MARKER_COMPLETE;
-                } else if (marker->mark == POD_MARKER_COMPLETE) {
-                    pop marker;
-                    marker->object = NULL;
-                    pod_destroy_marker(marker);
-                }
+                warning = pod_stream_write_mapping(stream, marker);
                 break;
             default:
                 // error
+                assert(0);
                 break;
         }
-        if (w_stack is empty)
-            done;
+        if (pod_list_is_empty(stream->w_stack) || warning != POD_OKAY) {
+            finished = true;
         }
     }
-}
 
-    switch (object->type) {
-        case POD_STRING_TYPE:
-            string = (pod_string *) object;
-            pod_stream_write_char(stream, '"');
-            for (index = 0; index < string->used; index++) {
-                c = string->buffer[index];
-                if (c is printable) {
-                    pod_stream_write_char(stream, c);
-                } else if (c is linefeed) {
-                    pod_stream_write_char(stream, 10);
-                } else if (c is carriage_return) {
-                    pod_stream_write_char(stream, 13);
-                } else if (c is tab) {
-                    pod_stream_write_char(stream, 9);
-                } else {
-                    pod_stream_write_char(stream, '\\');
-                    if (c == 0) {
-                        pod_stream_write_char(stream, '0');
-                    } else {
-                        while (c != 0) {
-                            digit = c & 0xf;
-                            c << 4;
-                            if (digit < 10) {
-                                pod_stream_write_char(stream, '0' + digit);
-                            } else {
-                                digit -= 10;
-                                pod_stream_write_char(stream, 'a' + digit);
-                        }
-                    }
-                    pod_stream_write_char(stream, '\\');
-                }
-            }
-            pod_stream_write_char(stream, '"');
-            break;
-        case POD_LIST_TYPE:
-            list = (pod_list *) object;
-            pod_stream_write_char(stream, '{');
-            next_object = first_object_in_list;
-            while (more objects(haven't reached list node yet)) {
-                sub_object = next object;
-                pod_stream_write(stream, object)
-            }
-            pod_stream_write_char(stream, '}');
-            break;
-        case POD_MAPPING_TYPE:
-            mapping = (pod_mapping *) object;
-            pod_stream_write(stream, (pod_object *) mapping->key);
-            pod_stream_write_char(stream, '=');
-            pod_stream_write(stream, mapping->value);
-            break;
-        default:
-            // this is an error, do nothing
-            break;
-    }
-    
+    return warning;
 }
 
 
