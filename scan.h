@@ -5,13 +5,6 @@
 
 
 
-enum boolean {
-    false = 0,
-    true = 1
-};
-
-
-
 extern int scan_start(pod_stream *stream, pod_char_t c);
 extern int scan_escape(pod_stream *stream, pod_char_t c);
 extern int scan_escape_hex(pod_stream *stream, pod_char_t c);
