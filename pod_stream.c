@@ -1,5 +1,8 @@
+#include <assert.h>
+#include <unistd.h>
 #include "pod_stream.h"
 #include "scan.h"
+#include "pod_boolean.h"
 #include "pod_log.h"
 
 
@@ -306,14 +309,15 @@ int pod_stream_read_char(pod_stream *stream, pod_char_t *c)
 {
     ssize_t read_bytes;
 
-    assert(stream->read_fd > -1);
-    assert(stream->read_buffer != NULL);
-    assert(stream->read_buffer_size > 0);
+    assert(stream->fd > -1);
+    assert(stream->r_buffer != NULL);
+    assert(stream->r_size > 0);
 
-    if (stream->read_buffer_index >= stream->read_buffer_used) {
-        read_bytes = read(stream->read_fd,
-                          stream->read_buffer,
-                          stream->read_buffer_size);
+    if (stream->r_tail == stream->r_head) {
+        // If the buffer is empty, do a read to put something in it
+        read_bytes = read(stream->fd,
+                          stream->r_buffer,
+                          stream->r_size);
         if (read_bytes == 0) {
             return POD_EOF;
             // DONE EOF
@@ -333,15 +337,18 @@ int pod_stream_read_char(pod_stream *stream, pod_char_t *c)
             // EISDIR return to caller
             // anything else, return to caller
         } else {
-            stream->read_buffer_used = read_bytes;
-            stream->read_buffer_index = 0;
+            stream->r_head = read_bytes;
+            stream->r_tail = 0;
         }
     }
         
     // Conversions (for example, from UTF8) would go here.  There is no
     // conversion, currently.
-    *c = (pod_char_t) stream->read_buffer[stream->read_buffer_index];
-    ++stream->read_buffer_index;
+    (*c) = (pod_char_t) stream->r_buffer[stream->r_tail];
+    ++stream->r_tail;
+    if (stream->r_tail == stream->r_head) {
+        stream->r_tail = stream->r_head = 0;
+    }
 
     return POD_OKAY;
 }
@@ -369,7 +376,7 @@ int pod_stream_read(pod_stream *stream, pod_object **object)
             //   ignore warning, mostly, but what if warning indicates input
             //   should be closed?  Especially if security rules are violated?
             if (stream->result_pod != NULL) {
-                &object = stream->result_pod;
+                (*object) = stream->result_pod;
                 stream->result_pod = NULL;
                 finished = true;
             }

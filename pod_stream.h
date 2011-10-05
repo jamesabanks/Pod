@@ -77,7 +77,7 @@ struct pod_stream {
     size_t w_size;          // default to 128 (arbitrary)
     size_t w_tail;          // initialize to 0
     pod_list *w_stack;
-    pod_stream_handle_write_error *w_handler;   // default to default write
+//    pod_stream_handle_write_error *w_handler;   // default to default write
                                                 // error handler
 
 //    work buffer (for strings) (two times max string size?)

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <unistd.h>
 #include "pod_boolean.h"
@@ -108,10 +109,8 @@ int pod_stream_write_buffer(pod_stream *stream, int *os_err)
 
 int pod_stream_write_char(pod_stream *stream, pod_char_t c, int *os_err)
 {
-    char buffer;
     char byte;
     int warning;
-    ssize_t written_bytes;
 
     assert(stream != NULL);
     assert(stream->fd > 0);
@@ -275,8 +274,6 @@ int pod_stream_write_string(pod_stream *stream, pod_marker *marker, int *os_err)
 
 int pod_stream_write_list(pod_stream *stream, pod_marker *marker, int *os_err)
 {
-    pod_char_t c;
-    int digit;
     pod_list *list;
     pod_marker *temp;
     int warning;
@@ -424,32 +421,3 @@ int pod_stream_write(pod_stream *stream, pod_object *object, int *os_err)
 
     return warning;
 }
-
-
-
-int pod_stream_default_write_error_handler(pod_stream *stream, int error)
-{
-// pod_stream_log(pod_stream *stream, int message, char *file_name, int line)
-    // TODO error
-    // EAGAIN, EWOULDBLOCK  return error to caller
-    // EBADF bad fd
-    // EFAULT shouldn't happen (the buffer is the "out" variable
-    // EFBIG exceeding file size limit
-    // EINTR fine, just do it again.
-    // EINVAL insuitable for writing
-    // EIO return to caller
-    // ENOSPC no room on device
-    // EPIPE reading end of pipe is closed (preceded by SIGPIPE)
-    // anything else, return to caller
-    pod_stream_log(stream, 
-                   io error # in stream name, fd #
-                  __FILE__,
-                  __LINE__);
-
-    // This would be a good place to throw an exception.
-    return POD_ABORT;
-}
-
-
-
-
