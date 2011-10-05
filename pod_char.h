@@ -46,8 +46,6 @@ extern void pod_char_copy(pod_char_t *to, pod_char_t *from, size_t n);
 #define POD_CHAR_NEWLINE ((pod_char_t) '\n')
 #define POD_CHAR_RETURN ((pod_char_t) '\r')
 #define POD_CHAR_EOB ((pod_char_t) '')
-#define POD_CHAR_QUOTE ((pod_char_t) '"')
-#define POD_CHAR_BACKSLASH ((pod_char_t) '\\')
 
 #define POD_CHAR_IS_PRINTING(c) ((c) >= 32 && (c) != 128) ? 1 : 0
 #define POD_CHAR(c) ((pod_char_t) (c))
