@@ -3,7 +3,7 @@
 
 
 
-typedef enum pod_warnings {
+typedef enum {
     POD_OKAY = 0,
     POD_OS_ERROR,
     POD_ABORT,
