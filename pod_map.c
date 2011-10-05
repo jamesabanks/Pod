@@ -4,12 +4,6 @@
 
 
 
-// Initialize POD_MAP_TYPE to 0x64
-
-const int POD_MAP_TYPE = 0x64;
-
-
-
     // pod_map_create
     //
     // Allocate memory for a new pod_map and initialize the members

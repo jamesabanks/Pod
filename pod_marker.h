@@ -1,7 +1,14 @@
 #ifndef INCLUDE_POD_MARKER_H
 #define INCLUDE POD_MARKER_H
 
+#include "pod_char.h"
 #include "pod_object.h"
+
+
+
+    // Type value is POD_OBJECT_TYPE + 5 or 0x65
+
+#define POD_MARKER_TYPE 0x65
 
 
 
@@ -13,13 +20,8 @@ typedef enum {
     POD_MARKER_NULL,
     POD_MARKER_FINAL,
     POD_MARKER_END,
+    POD_MARKER_COMPLETE
 } pod_marker_state_t;
-
-
-
-    // Type value is POD_OBJECT_TYPE + 5
-
-extern const int POD_MARKER_TYPE;
 
 
 
@@ -35,7 +37,7 @@ typedef struct pod_marker {
 
     // Constructor and destructor
 
-extern pod_marker *pod_marker pod_create_marker(void);
+extern pod_marker *pod_marker_create(void);
 extern void pod_marker_destroy(void *target);
 
 

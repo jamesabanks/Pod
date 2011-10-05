@@ -4,13 +4,6 @@
 
 
 
-    // Initialize POD_STRING_TYPE to 0x61, which is POD_OBJECT_TYPE + 1
-    // This means that pod_string was the first class written after pod_object.
-
-const int POD_STRING_TYPE = 0x61;
-
-
-
     // pod_string_create
     //
     // Allocate memory for a new pod_string.  Initialize the members.

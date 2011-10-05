@@ -13,7 +13,7 @@
 
     // Type is POD_OBJECT_TYPE + 4 or 0x64
 
-extern const int POD_MAP_TYPE;
+#define POD_MAP_TYPE 0x64
 
 
 

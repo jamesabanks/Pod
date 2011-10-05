@@ -3,12 +3,6 @@
 
 
 
-// Initialize POD_MAPPING_TYPE to 0x63
-
-const int POD_MAPPING_TYPE = 0x63;
-
-
-
     // pod_mapping_create
     //
     // Allocate memory for a new pod_mapping and initialize the members.

@@ -12,7 +12,7 @@
 
     // Type is POD_OBJECT_TYPE + 3 or 0x63
 
-extern const int POD_MAPPING_TYPE;
+#define POD_MAPPING_TYPE 0x63
 
 
 

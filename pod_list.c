@@ -4,13 +4,6 @@
 
 
 
-    // Initialize POD_LIST_TYPE to 0x62, which is POD_OBJECT_TYPE + 2
-    // This means that pod_list was the second class written after pod_object.
-
-const int POD_LIST_TYPE = 0x62;
-
-
-
     // pod_list_create
     //
     // Allocate memory for a new pod_list and initialize the members.

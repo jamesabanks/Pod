@@ -10,9 +10,9 @@
 // without (that is, use a typedef).
 
 
-    // Type value is POD_OBJECT_TYPE + 2
+    // Type value is 0x62, POD_OBJECT_TYPE + 2
 
-extern const int POD_LIST_TYPE;
+#define POD_LIST_TYPE 0x62
 
 
 

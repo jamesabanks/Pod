@@ -18,7 +18,7 @@
     // be set to the value appropriate to the type of struct.  Practically,
     // POD_OBJECT_TYPE itself should never be used.
 
-extern const int POD_OBJECT_TYPE;
+#define POD_OBJECT_TYPE 0x60
 
 
     // Every subclass needs to define a destructor and set the destroy member

@@ -32,9 +32,9 @@
 // pod_string_create doesn't need the error parameter.  Get rid of it. 
 
 
-    // Type value is POD_OBJECT_TYPE + 1
+    // Type value is 0x61, POD_OBJECT_TYPE + 1
 
-extern const int POD_STRING_TYPE;
+#define POD_STRING_TYPE 0x61
 
 
     // Flags are:
