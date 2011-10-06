@@ -165,6 +165,7 @@ int pod_stream_write_string(pod_stream *stream, pod_marker *marker, int *os_err)
 
     assert(stream != NULL);
     assert(marker != NULL);
+    assert(os_err != NULL);
 
     string = (pod_string *) marker->object;
     switch (marker->state) {
@@ -280,6 +281,7 @@ int pod_stream_write_list(pod_stream *stream, pod_marker *marker, int *os_err)
 
     assert(stream != NULL);
     assert(marker != NULL);
+    assert(os_err != NULL);
 
     list = (pod_list *) marker->object;
     switch (marker->state) {
@@ -329,6 +331,10 @@ int pod_stream_write_mapping(pod_stream *stream, pod_marker *marker,int *os_err)
     pod_mapping *mapping;
     pod_marker *temp;
     int warning;
+
+    assert(stream != NULL);
+    assert(marker != NULL);
+    assert(os_err != NULL);
 
     warning = POD_OKAY;
     mapping = (pod_mapping *) marker->object;
@@ -381,9 +387,12 @@ int pod_stream_write(pod_stream *stream, pod_object *object, int *os_err)
     pod_marker *marker;
     int warning;
 
-    // pretty print version?
+    // TODO pretty print version
+    // TODO reset if starting a different pod
 
     assert(stream != NULL);
+    assert(object != NULL);
+    assert(os_err != NULL);
 
     if (object == NULL) {
         return POD_OKAY;

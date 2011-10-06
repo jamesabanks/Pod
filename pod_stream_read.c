@@ -11,8 +11,8 @@
     // Read a byte from a file descriptor and convert it to a pod_char_t.
     //
     // Returns:
-    //      POD_OKAY        Successfully got a character.
-    //      POD_OS_ERROR    An I/O error, what the OS returns.
+    //      POD_OKAY        Successfully got a character
+    //      POD_OS_ERROR    An I/O error, stored in os_err
     //      POD_EOF         At end of file, no character
 
 int pod_stream_read_char(pod_stream *stream, pod_char_t *c, int *os_err)
@@ -76,6 +76,10 @@ int pod_stream_read(pod_stream *stream, pod_object **object, int *os_err)
     pod_char_t c;
     int finished;
     int warning;
+
+    assert(stream != NULL);
+    assert(object != NULL);
+    assert(os_err != NULL);
 
     finished = false;
     while (! finished) {
