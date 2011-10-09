@@ -77,6 +77,7 @@ struct pod_stream {
     size_t w_size;          // default to 128 (arbitrary)
     size_t w_tail;          // initialize to 0
     pod_list *w_stack;
+    pod_object *w_object;
 //    pod_stream_handle_write_error *w_handler;   // default to default write
                                                 // error handler
 
@@ -100,11 +101,15 @@ extern void pod_stream_destroy(void *target);
 
     // Other pod_stream-related functions
 
+extern int pod_stream_read(pod_stream *stream, pod_object **object, int *os_er);
+extern int pod_stream_write(pod_stream *stream, pod_object *object, int *os_er);
 extern int pod_stream_add_char(pod_stream *stream, pod_char_t c);
 extern int pod_stream_add_token(pod_stream *stream, pod_stream_token token);
+// to be written:
 extern int pod_stream_end(pod_stream *stream);
 extern void pod_stream_log(pod_stream *stream, int msg, char *fname, int line);
-
-
+// extern int pod_stream_read_sync
+// extern int pod_stream_write_reset
+// extern int pod_stream_write_sync
 
 #endif /* INCLUDE_POD_STREAM_H */
