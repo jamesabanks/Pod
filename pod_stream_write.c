@@ -20,6 +20,27 @@
 
 
 
+    // pod_stream_write_reset
+    //
+    // Reset the write stuff in the stream.  The buffer reset to zero/empty.
+    // The write stack is emptied, the markers are destroyed.  Finally, the
+    // pointer to the current object being written is reset to zero.
+
+void pod_stream_write_reset(pod_stream *stream) 
+{
+    pod_object *object;
+
+    stream->w_head = stream->w_tail = 0;
+    object = pod_list_pop(stream->w_stack);
+    while (object != NULL) {
+        assert(object->type == POD_MARKER_TYPE);
+        object->destroy(object);
+        object = pod_list_pop(stream->w_stack);
+    }
+    stream->w_object = NULL;
+}
+
+
     // pod_stream_write_buffer
     //
     // Write the write_buffer to an fd, until everything has been written or
@@ -389,9 +410,12 @@ int pod_stream_write(pod_stream *stream, pod_object *object, int *os_err)
 
     // TODO pretty print version
     // TODO reset if starting a different pod
+    if (object != stream->w_object) {
+        pod_stream_write_reset(stream);
+        stream->w_object = object;
+    }
 
     assert(stream != NULL);
-    assert(object != NULL);
     assert(os_err != NULL);
 
     if (object == NULL) {

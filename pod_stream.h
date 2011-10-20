@@ -7,24 +7,16 @@
 #include "pod_list.h"
 #include "pod_mapping.h"
 #include "pod_map.h"
-#include "pod_stream_state.h"
-#include "pod_stream_token.h"
+#include "pod_scan_state.h"
+#include "pod_scan_token.h"
 
-
-
-struct pod_stream;
-typedef struct pod_stream pod_stream;
-
-typedef void pod_stream_process_pod(pod_object *object);
-typedef int pod_stream_handle_write_error(pod_stream *stream, int error);
 
 
 // Next is pod_stream.  This is a struct that holds information about what to
 // accept from a data source or send to a data sink.
 
-struct pod_stream {
+typedef struct pod_stream {
     pod_string *name;
-    pod_list *stack;
     int allow_blurbs;
     int c;
 
@@ -37,14 +29,10 @@ struct pod_stream {
     int position;           // current character within line, starting at zero
     int line;               // current line number, starting at zero
 
-    pod_stream_state state;
     int string_size;
-    int have_concat;
     int warn_string_size;
     int max_string_size;
-    pod_string *buffer;
     pod_string *current_string;
-    pod_stream_process_pod *process_pod;
 
     int escape_number;
     int escape_size;
@@ -78,6 +66,12 @@ struct pod_stream {
     size_t w_tail;          // initialize to 0
     pod_list *w_stack;
     pod_object *w_object;
+
+    int have_concat;        // initialize to false
+    pod_scan_state s_state; // scanner state, init to POD_SCAN_START
+    pod_string *s_buffer;   // allocate at create time
+    pod_list *s_stack;      // scanner stack, allocate at create time
+
 //    pod_stream_handle_write_error *w_handler;   // default to default write
                                                 // error handler
 
@@ -86,7 +80,7 @@ struct pod_stream {
 //        in blurbs.
 //    how do you negotiate endian-ness?  Is that even meaningful?
 //    how do you find out max sizes?
-};
+} pod_stream;
 
 
 
@@ -104,12 +98,12 @@ extern void pod_stream_destroy(void *target);
 extern int pod_stream_read(pod_stream *stream, pod_object **object, int *os_er);
 extern int pod_stream_write(pod_stream *stream, pod_object *object, int *os_er);
 extern int pod_stream_add_char(pod_stream *stream, pod_char_t c);
-extern int pod_stream_add_token(pod_stream *stream, pod_stream_token token);
+extern int pod_stream_add_token(pod_stream *stream, pod_scan_token token);
 // to be written:
 extern int pod_stream_end(pod_stream *stream);
 extern void pod_stream_log(pod_stream *stream, int msg, char *fname, int line);
-// extern int pod_stream_read_sync
-// extern int pod_stream_write_reset
+extern void pod_stream_read_reset(pod_stream *stream);
+extern void pod_stream_write_reset(pod_stream *stream);
 // extern int pod_stream_write_sync
 
 #endif /* INCLUDE_POD_STREAM_H */

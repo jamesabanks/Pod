@@ -6,6 +6,23 @@
 
 
 
+    // pod_stream_read_reset
+    //
+
+void pod_stream_read_reset(pod_stream *stream)
+{
+    stream->r_head = stream->r_tail = 0;
+    // TODO reset extras, anything not on the stack.
+    if (pod_list_peek(stream->s_stack) != NULL) {
+        stream->result_pod = pod_list_pop(stream->s_stack);
+    // TODO etc,
+    } else {
+        stream->result_pod = NULL;
+    }
+}
+
+
+
     // pod_stream_read_char
     //
     // Read a byte from a file descriptor and convert it to a pod_char_t.
