@@ -12,7 +12,7 @@
     // a concat ("+").  But it might have nothing.
     //
     // Returns:
-    //      int     The error id of any problem that occurred (0 = no error)
+    //      int     The error id of any problem that occurred (see pod_log.h)
 
 int pod_scan_start(pod_stream *stream, pod_char_t c)
 {
@@ -96,6 +96,9 @@ int pod_scan_start(pod_stream *stream, pod_char_t c)
             if (! POD_CHAR_IS_PRINTING(c)) {
                 warning = 1; // TODO
             } else {
+                if (have_string && no_concat) {
+                    pod_stream_add_token(stream, POD_TOKEN_STRING);
+                }
                 pod_string_append_char(stream->s_buffer, c);
                 stream->s_state = POD_SIMPLE;
             }
