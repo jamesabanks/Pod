@@ -32,25 +32,25 @@ int pod_scan_add_char(pod_stream *stream, pod_char_t c)
     }
     stream->c = c;
     switch (stream->s_state) {
-        case POD_SCAN_START:
+        case POD_STATE_START:
             warning = scan_start(stream, c);
             break;
-        case POD_SIMPLE:
+        case POD_STATE_SIMPLE:
             warning = scan_simple(stream, c);
             break;
-        case POD_SIMPLE_ESCAPE:
+        case POD_STATE_SIMPLE_ESCAPE:
             warning = scan_escape(stream, c);
             break;
-        case POD_SIMPLE_ESCAPE_HEX:
+        case POD_STATE_SIMPLE_ESCAPE_HEX:
             warning = scan_escape_hex(stream, c);
             break;
-        case POD_QUOTED:
+        case POD_STATE_QUOTED:
             warning = scan_quoted(stream, c);
             break;
-        case POD_QUOTED_ESCAPE:
+        case POD_STATE_QUOTED_ESCAPE:
             warning = scan_escape(stream, c);
             break;
-        case POD_QUOTED_ESCAPE_HEX:
+        case POD_STATE_QUOTED_ESCAPE_HEX:
             warning = scan_escape_hex(stream, c);
             break;
         case pod_blurb_pre_size:
@@ -64,23 +64,23 @@ int pod_scan_add_char(pod_stream *stream, pod_char_t c)
             break;
         case pod_end_escape:
             if (c == '\\') {
-                stream->s_state = POD_SCAN_START;
+                stream->s_state = POD_STATE_START;
             }
             break;
         case pod_end_line:
             if (c == '\n' || c == '\r') {
-                stream->s_state = POD_SCAN_START;
+                stream->s_state = POD_STATE_START;
             }
             break;
         case pod_end_pod:
             if (c == '.') {
-                stream->s_state = POD_SCAN_START;
+                stream->s_state = POD_STATE_START;
             }
             break;
         default:
             warning = POD_INVALID_STREAM_STATE;
             pod_stream_log(stream, warning, __FILE__, __LINE__);
-            stream->s_state = POD_SCAN_START;
+            stream->s_state = POD_STATE_START;
             break;
     }
     if (warning != 0) {

@@ -37,7 +37,7 @@ int pod_scan_start(pod_stream *stream, pod_char_t c)
                 pod_stream_add_token(stream, POD_TOKEN_STRING);
             }
             // Start the new string
-            stream->s_state = POD_QUOTED;
+            stream->s_state = POD_STATE_QUOTED;
             break;
         case POD_CHAR('+'):
             if (stream->have_concat) { // aka (! no_concat)
@@ -64,7 +64,7 @@ int pod_scan_start(pod_stream *stream, pod_char_t c)
             if (have_string && no_concat) {
                 pod_stream_add_token(stream, POD_TOKEN_STRING);
             }
-            stream->s_state = POD_SIMPLE_ESCAPE;
+            stream->s_state = POD_STATE_SIMPLE_ESCAPE;
             break;
 //        case ']':
 //            if (have_string) {
@@ -100,7 +100,7 @@ int pod_scan_start(pod_stream *stream, pod_char_t c)
                     pod_stream_add_token(stream, POD_TOKEN_STRING);
                 }
                 pod_string_append_char(stream->s_buffer, c);
-                stream->s_state = POD_SIMPLE;
+                stream->s_state = POD_STATE_SIMPLE;
             }
             break;
     }

@@ -68,7 +68,7 @@ typedef struct pod_stream {
     pod_object *w_object;
 
     int have_concat;        // initialize to false
-    pod_scan_state s_state; // scanner state, init to POD_SCAN_START
+    pod_scan_state s_state; // scanner state, init to POD_STATE_START
     pod_string *s_buffer;   // allocate at create time
     pod_list *s_stack;      // scanner stack, allocate at create time
 
