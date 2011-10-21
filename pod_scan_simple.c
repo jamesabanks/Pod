@@ -100,10 +100,8 @@ int pod_scan_simple(pod_stream *stream, pod_char_t c)
             stream->s_state = POD_STATE_START;
             break;
         default:
-            if (c < 32) {
-                // TODO warn, illegal char (?).  What about non-printing
-                // characters that are above 31?
-                warning = 1;
+            if (! POD_CHAR_IS_PRINTING(c)) {
+                warning = 1; // TODO
             } else {
                 pod_string_append_char(stream->s_buffer, c);
             }
