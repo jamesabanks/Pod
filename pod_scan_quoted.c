@@ -1,4 +1,5 @@
 #include "pod_char.h"
+#include "pod_log.h"
 #include "pod_scan.h"
 
 
@@ -14,7 +15,7 @@ int pod_scan_quoted(pod_stream *stream, pod_char_t c)
 {
     int warning;
 
-    warning = 0;
+    warning = POD_OKAY;
     switch (c) {
         case POD_CHAR_NEWLINE: // Ends a quoted string
         case POD_CHAR_RETURN:
