@@ -4,9 +4,9 @@
 
 
 typedef enum pod_scan_state {
-    pod_state_mask = 0xf0,              /* binary  1111 0000 */
-    pod_escape_mask = 0x0f,             /* binary  0000 1100 */
-    pod_escape_hex = 0x0c,
+    POD_STATE_MASK = 0xf0,              /* binary  1111 0000 */
+    POD_STATE_ESCAPE_MASK = 0x0f,       /* binary  0000 1111 */
+    POD_STATE_ESCAPE_HEX = 0x0c,        /* binary  0000 1100 */
     POD_STATE_START = 0,
     POD_STATE_SIMPLE = 0x10,            /* binary  0001 0000 */
     POD_STATE_SIMPLE_ESCAPE = 0x18,     /* binary  0001 1000 */

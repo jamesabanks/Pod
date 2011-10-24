@@ -2,7 +2,8 @@ CFLAGS = -O2 -Wall
 objects = pod_char.o pod_string.o pod_list.o pod_mapping.o  \
     pod_map.o pod_scan_add_char.o pod_scan_add_token.o \
     pod_stream.o pod_stream_read.o pod_stream_write.o pod_scan_start.o \
-    pod_scan_simple.o pod_scan_quoted.o scan_escape.o scan_escape_hex.o scan_blurb.o
+    pod_scan_simple.o pod_scan_quoted.o pod_scan_escape.o \
+    pod_scan_escape_hex.o pod_scan_blurb.o
 
 
 
