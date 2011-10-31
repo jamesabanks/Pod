@@ -26,54 +26,53 @@ int pod_scan_add_char(pod_stream *stream, pod_char_t c)
     }
     ++stream->total_characters;
     ++stream->position;
-    if (c == '\n' || c == '\r') {
+    if (c == POD_CHAR_NEWLINE || c == POD_CHAR_RETURN) {
         stream->position = 1;
         ++stream->line;
     }
-    stream->c = c;
     switch (stream->s_state) {
         case POD_STATE_START:
-            warning = scan_start(stream, c);
+            warning = pod_scan_start(stream, c);
             break;
         case POD_STATE_SIMPLE:
-            warning = scan_simple(stream, c);
+            warning = pod_scan_simple(stream, c);
             break;
         case POD_STATE_SIMPLE_ESCAPE:
-            warning = scan_escape(stream, c);
+            warning = pod_scan_escape(stream, c);
             break;
         case POD_STATE_SIMPLE_ESCAPE_HEX:
-            warning = scan_escape_hex(stream, c);
+            warning = pod_scan_escape_hex(stream, c);
             break;
         case POD_STATE_QUOTED:
-            warning = scan_quoted(stream, c);
+            warning = pod_scan_quoted(stream, c);
             break;
         case POD_STATE_QUOTED_ESCAPE:
-            warning = scan_escape(stream, c);
+            warning = pod_scan_escape(stream, c);
             break;
         case POD_STATE_QUOTED_ESCAPE_HEX:
-            warning = scan_escape_hex(stream, c);
+            warning = pod_scan_escape_hex(stream, c);
             break;
         case pod_blurb_pre_size:
-            warning = scan_blurb_pre_size(stream, c);
+            warning = pod_scan_blurb_pre_size(stream, c);
             break;
         case pod_blurb_size:
-            warning = scan_blurb_size(stream, c);
+            warning = pod_scan_blurb_size(stream, c);
             break;
         case pod_blurb_post_size:
-            warning = scan_blurb_post_size(stream, c);
+            warning = pod_scan_blurb_post_size(stream, c);
             break;
         case pod_end_escape:
-            if (c == '\\') {
+            if (c == POD_CHAR('\\')) {
                 stream->s_state = POD_STATE_START;
             }
             break;
         case pod_end_line:
-            if (c == '\n' || c == '\r') {
+            if (c == POD_CHAR_NEWLINE || c == POD_CHAR_RETURN) {
                 stream->s_state = POD_STATE_START;
             }
             break;
         case pod_end_pod:
-            if (c == '.') {
+            if (c == POD_CHAR_EOB) {
                 stream->s_state = POD_STATE_START;
             }
             break;
