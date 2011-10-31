@@ -18,7 +18,6 @@
 typedef struct pod_stream {
     pod_string *name;
     int allow_blurbs;
-    int c;
 
     int total_characters;   // total characters (pod_char_t) received, from
                             //   Pod's POV
