@@ -2,7 +2,7 @@
 #define INCLUDE_POD_CHAR_H
 
 #include <stdint.h> /* for uint32 */
-#include <stddef.h>
+#include <stddef.h> /* for size_t */
 
 
 
@@ -37,9 +37,8 @@ extern void pod_char_copy(pod_char_t *to, pod_char_t *from, size_t n);
 
 
     // useful #defines
-    //
-    // Is using a macro (or #define) better than just typing out the
-    // definition?
+
+#define POD_CHAR_BITS 32
 
 #define POD_CHAR_NULL ((pod_char_t) '\0')
 #define POD_CHAR_TAB ((pod_char_t) '\t') // ?
