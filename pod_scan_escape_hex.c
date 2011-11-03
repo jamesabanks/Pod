@@ -12,9 +12,6 @@
     // Returns:
     //      int     The error id of any problem that occurred (0 = no error)
 
-// How do I keep track of how many digits I have?  How many digits
-// should I allow?  Put them in the stream variable, too.
-
 int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
 {
     pod_char_t digit;
@@ -40,8 +37,9 @@ int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
         default:
             if (stream->escape_size >= stream->escape_max_size) {
                 // Error: Too many digits.  Ignore the escape.  Go to the end
-                //   of the escape.
-                warning = 1;
+                //   of the escape.  Actually, this is a terminal error.
+                //   Otherwise one could have an infinitely long escape.
+                warning = 1;  // TODO Terminal
             } else {
                 ++stream->escape_size;
                 switch (c) {
@@ -56,6 +54,8 @@ int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
                     case '8':
                     case '9':
                         digit = (c - '0') & 0xf;
+                        // If POD_CHAR_BITS is not a multiple of four, then
+                        //   excess bits are shifted (or mul'd) into oblivion.
                         stream->escape_value *= 0x10;
                         stream->escape_value |= digit;
                         break;
