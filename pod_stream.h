@@ -12,10 +12,15 @@
 
 
 
+#define POD_STREAM_TYPE 0x67
+
+
+
 // Next is pod_stream.  This is a struct that holds information about what to
 // accept from a data source or send to a data sink.
 
 typedef struct pod_stream {
+    pod_object o;
     pod_string *name;
     int allow_blurbs;
 
@@ -28,27 +33,28 @@ typedef struct pod_stream {
     int position;           // current character within line, starting at zero
     int line;               // current line number, starting at zero
 
-    int string_size;
-    int warn_string_size;
-    int max_string_size;
-    pod_string *current_string;
+    //int string_size;
+    //int warn_string_size;
+    //int max_string_size;
+    //pod_string *current_string;
 
-    int escape_number;
+    pod_char_t escape;
     int escape_size;
-    int escape_max_size;    // = sizeof(pod_char_t) * 8;
-    pod_char_t escape_value;
+    int escape_max_size;    // In an escape, the max number of digits to allow.
+                            //   A resonable default is POD_CHAR_BITS / 4,
+                            //   because a hex digit is 4 bits.
 
-    pod_object *result_pod;
+    pod_object *result_pod; // initialize to NULL
 
     size_t blurb_size;
-    size_t max_blurb_size;   // maximum blurb size
+    size_t max_blurb_size;  // maximum blurb size
 
-    int max_pod_size;     // maximum pod size
-    int max_pod_depth;    // maximum pod depth
+    //int max_pod_size;       // maximum pod size
+    //int max_pod_depth;      // maximum pod depth
 //no    int pod_timeout;      // maximum wait time reading within a pod
 //no    int inter_timeout;    // maximum wait time between pods (0 = indefinite)
-    int pod_errors;       // number of errors since pod beginning
-    int max_pod_errors;   // max number of errors since pod beginning
+    //int pod_errors;         // number of errors since pod beginning
+    //int max_pod_errors;     // max number of errors since pod beginning
 
     int fd;
 
@@ -68,17 +74,10 @@ typedef struct pod_stream {
 
     int have_concat;        // initialize to false
     pod_scan_state s_state; // scanner state, init to POD_STATE_START
-    pod_string *s_buffer;   // allocate at create time
+    int s_buffer_size;      // initialize to, say, 10, used to create s_buffer
+    pod_string *s_buffer;   // allocate at initialize time
     pod_list *s_stack;      // scanner stack, allocate at create time
 
-//    pod_stream_handle_write_error *w_handler;   // default to default write
-                                                // error handler
-
-//    work buffer (for strings) (two times max string size?)
-//    link endian-ness: I don't think endianess is Pod's problem, except maybe
-//        in blurbs.
-//    how do you negotiate endian-ness?  Is that even meaningful?
-//    how do you find out max sizes?
 } pod_stream;
 
 
@@ -95,14 +94,14 @@ extern void pod_stream_destroy(void *target);
     // Other pod_stream-related functions
 
 extern int pod_stream_read(pod_stream *stream, pod_object **object, int *os_er);
+extern void pod_stream_read_reset(pod_stream *stream);
 extern int pod_stream_write(pod_stream *stream, pod_object *object, int *os_er);
+extern void pod_stream_write_reset(pod_stream *stream);
 extern int pod_stream_add_char(pod_stream *stream, pod_char_t c);
 extern int pod_stream_add_token(pod_stream *stream, pod_scan_token token);
 // to be written:
 extern int pod_stream_end(pod_stream *stream);
 extern void pod_stream_log(pod_stream *stream, int msg, char *fname, int line);
-extern void pod_stream_read_reset(pod_stream *stream);
-extern void pod_stream_write_reset(pod_stream *stream);
 // extern int pod_stream_write_sync
 
 #endif /* INCLUDE_POD_STREAM_H */

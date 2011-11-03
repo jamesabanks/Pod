@@ -103,7 +103,7 @@ int pod_scan_simple(pod_stream *stream, pod_char_t c)
             if (! POD_CHAR_IS_PRINTING(c)) {
                 warning = 1; // TODO
             } else {
-                pod_string_append_char(stream->s_buffer, c);
+                warning = pod_scan_append_to_buffer(stream->s_buffer, c);
             }
             break;
     }

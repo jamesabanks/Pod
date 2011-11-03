@@ -15,31 +15,31 @@
 int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
 {
     pod_char_t digit;
-    int warning;
+    int w;
 
-    warning = POD_OKAY;
+    w = POD_OKAY;
     switch (c) {
         case POD_CHAR('\\'): // End of escape
             // Put the char in the buffer.  Exit escape state.
-            pod_string_append_char(stream->s_buffer, stream->escape_value);
+            w = pod_scan_append_to_buffer(stream->s_buffer, stream->escape);
             stream->s_state &= POD_STATE_MASK;
             break;
         case POD_CHAR_NEWLINE:  // Unexpected end
         case POD_CHAR_RETURN:
         case POD_CHAR_EOB:
             // The token ended.
-            pod_string_append_char(stream->s_buffer, stream->escape_value);
+            w = pod_scan_append_to_buffer(stream->s_buffer, stream->escape);
             pod_stream_add_token(stream, POD_TOKEN_STRING);
             stream->s_state = POD_STATE_START;
             // Error: the end was unexpected, so emit a warning.
-            warning = 1; // TODO
+            w = 1; // TODO
             break;
         default:
             if (stream->escape_size >= stream->escape_max_size) {
                 // Error: Too many digits.  Ignore the escape.  Go to the end
                 //   of the escape.  Actually, this is a terminal error.
                 //   Otherwise one could have an infinitely long escape.
-                warning = 1;  // TODO Terminal
+                w = 1;  // TODO Terminal
             } else {
                 ++stream->escape_size;
                 switch (c) {
@@ -56,8 +56,8 @@ int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
                         digit = (c - '0') & 0xf;
                         // If POD_CHAR_BITS is not a multiple of four, then
                         //   excess bits are shifted (or mul'd) into oblivion.
-                        stream->escape_value *= 0x10;
-                        stream->escape_value |= digit;
+                        stream->escape *= 0x10;
+                        stream->escape |= digit;
                         break;
                     case 'A':
                     case 'B':
@@ -66,8 +66,8 @@ int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
                     case 'E':
                     case 'F':
                         digit = (10 + (c - 'A')) & 0xf;
-                        stream->escape_value *= 0x10;
-                        stream->escape_value |= digit;
+                        stream->escape *= 0x10;
+                        stream->escape |= digit;
                         break;
                     case 'a':
                     case 'b':
@@ -76,17 +76,17 @@ int pod_scan_escape_hex(pod_stream *stream, pod_char_t c)
                     case 'e':
                     case 'f':
                         digit = (10 + (c - 'a')) & 0xf;
-                        stream->escape_value *= 0x10;
-                        stream->escape_value |= digit;
+                        stream->escape *= 0x10;
+                        stream->escape |= digit;
                         break;
                     default:
                         // Error: got a character that wasn't a hex digit.
                         //   Ignore the escape.  Go to the end of the escape.
-                        warning = 1; // TODO
+                        w = 1; // TODO
                         break;
                 }
             }
     }
 
-    return warning;
+    return w;
 }

@@ -99,7 +99,7 @@ int pod_scan_start(pod_stream *stream, pod_char_t c)
                 if (have_string && no_concat) {
                     pod_stream_add_token(stream, POD_TOKEN_STRING);
                 }
-                pod_string_append_char(stream->s_buffer, c);
+                warning = pod_scan_append_to_buffer(stream->s_buffer, c);
                 stream->s_state = POD_STATE_SIMPLE;
             }
             break;

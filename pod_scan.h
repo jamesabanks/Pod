@@ -3,6 +3,7 @@
 
 #include "pod_char.h"
 #include "pod_stream.h"
+#include "pod_string.h"
 
 
 
@@ -15,6 +16,7 @@ extern int pod_scan_blurb(pod_stream *stream, pod_char_t c);
 extern int pod_scan_blurb_pre_size(pod_stream *stream, pod_char_t c);
 extern int pod_scan_blurb_size(pod_stream *stream, pod_char_t c);
 extern int pod_scan_blurb_post_size(pod_stream *stream, pod_char_t c);
+extern int pod_scan_append_to_buffer(pod_string *buffer, pod_char_t c);
 
 
 

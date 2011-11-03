@@ -14,9 +14,9 @@
 
 int pod_scan_escape(pod_stream *stream, pod_char_t c)
 {
-    int warning;
+    int w;
 
-    warning = POD_OKAY;
+    w = POD_OKAY;
     switch (c) {
         case POD_CHAR_NEWLINE:
         case POD_CHAR_RETURN:
@@ -42,7 +42,7 @@ int pod_scan_escape(pod_stream *stream, pod_char_t c)
         case '9':
             stream->s_state &= POD_STATE_MASK;
             stream->s_state |= POD_STATE_ESCAPE_HEX;
-            stream->escape_value = (c - '0') & 0xf;
+            stream->escape = (c - '0') & 0xf;
             break;
         case 'A':
         case 'B':
@@ -52,7 +52,7 @@ int pod_scan_escape(pod_stream *stream, pod_char_t c)
         case 'F':
             stream->s_state &= POD_STATE_MASK;
             stream->s_state |= POD_STATE_ESCAPE_HEX;
-            stream->escape_value = (10 + (c - 'A')) & 0xf;
+            stream->escape = (10 + (c - 'A')) & 0xf;
             break;
         case 'a':
         case 'b':
@@ -62,33 +62,33 @@ int pod_scan_escape(pod_stream *stream, pod_char_t c)
         case 'f':
             stream->s_state &= POD_STATE_MASK;
             stream->s_state |= POD_STATE_ESCAPE_HEX;
-            stream->escape_value = (10 + (c - 'a')) & 0xf;
+            stream->escape = (10 + (c - 'a')) & 0xf;
             break;
         case 't':
-            pod_string_append_char(stream->s_buffer, POD_CHAR_TAB);
+            w = pod_scan_append_to_buffer(stream->s_buffer, POD_CHAR_TAB);
             stream->s_state &= POD_STATE_MASK;
             break;
         case 'n':
-            pod_string_append_char(stream->s_buffer, POD_CHAR_NEWLINE);
+            w = pod_scan_append_to_buffer(stream->s_buffer, POD_CHAR_NEWLINE);
             stream->s_state &= POD_STATE_MASK;
             break;
         case 'r':
-            pod_string_append_char(stream->s_buffer, POD_CHAR_RETURN);
+            w = pod_scan_append_to_buffer(stream->s_buffer, POD_CHAR_RETURN);
             stream->s_state &= POD_STATE_MASK;
             break;
         case '\\':
-            pod_string_append_char(stream->s_buffer, POD_CHAR('\\'));
+            w = pod_scan_append_to_buffer(stream->s_buffer, POD_CHAR('\\'));
             stream->s_state &= POD_STATE_MASK;
             break;
         default:
             if (! POD_CHAR_IS_PRINTING(c)) {
-                warning = 1; // TODO
+                w = 1; // TODO
             } else {
-                pod_string_append_char(stream->s_buffer, c);
+                w = pod_scan_append_to_buffer(stream->s_buffer, c);
                 stream->s_state &= POD_STATE_MASK;
             }
             break;
     }
 
-    return warning;
+    return w;
 }

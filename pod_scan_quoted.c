@@ -39,7 +39,7 @@ int pod_scan_quoted(pod_stream *stream, pod_char_t c)
             warning = 1;
             break;
         default:
-            pod_string_append_char(stream->s_buffer, c);
+            warning = pod_scan_append_to_buffer(stream->s_buffer, c);
             break;
     }
 

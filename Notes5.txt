@@ -1,0 +1,31 @@
+(2011.11.02)
+
+On creating escape characters:
+    \n	Create 1 character with the appropriate value (10 in this case).
+    \52a\	Create a character from the enclosed hex string.
+
+
+If the pod_char_t type is not a multiple of 4 bits, then set escape_max_size to
+    ((sizeof(pod_char_t) * CHAR_BIT) / 4) + 1.  Let any excess bits be dropped.
+    For example, if a machine (or instance, really) had a pod_char_t of 10 bits,
+    unsigned, and an escape char of \a07\, 0xa07 is 1010 0000 0111.  The way
+    pod_escape_hex would handle this is inserting 1 hex digit at a time, most
+    significant to least significant.  The number is a, a0, then 207 as the top
+    two bits are shifted out.
+
+    At least that's how it is supposed to work.
+
+
+Some warnings need to be terminal, meaning they indicate the stream should be
+    closed.  The case that reminded me of this was the escape character has a
+    maximum size so the interpreter doesn't keep reading digits ad infinitem.
+    If a party violates this rule, they are potentially making an attack, and
+    the door should be shut (that means, the stream should be closed).
+
+
+DONE Implement size checks on strings.
+    Created pod_scan_append_to_buffer.  If there isn't room for more characters
+    in the buffer, return a warning.  This is a terminal warning. (2011.11.03)
+
+
+TODO check out how EOF is handled.  It should be handled like EOB.
