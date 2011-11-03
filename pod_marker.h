@@ -6,9 +6,9 @@
 
 
 
-    // Type value is POD_OBJECT_TYPE + 5 or 0x65
+    // Type value is POD_OBJECT_TYPE + 6 or 0x66
 
-#define POD_MARKER_TYPE 0x65
+#define POD_MARKER_TYPE 0x66
 
 
 
