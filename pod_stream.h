@@ -6,7 +6,6 @@
 #include "pod_string.h"
 #include "pod_list.h"
 #include "pod_mapping.h"
-#include "pod_map.h"
 #include "pod_scan_state.h"
 #include "pod_scan_token.h"
 
@@ -60,7 +59,7 @@ typedef struct pod_stream {
 
     char  *r_buffer;        // allocate at initialize time
     size_t r_head;          // initialize to 0
-    size_t r_mask;          // ? initialize from r_size, eg. 128 it would be 7f
+    // remove this ??? size_t r_mask;          // ? initialize from r_size, eg. 128 it would be 7f
     size_t r_size;          // default to 128 (arbitrary)
     size_t r_tail;          // initialize to 0
 
