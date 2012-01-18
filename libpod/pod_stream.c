@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  pod_stream.c
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <assert.h>
 #include <stdlib.h>
 #include "pod_stream.h"

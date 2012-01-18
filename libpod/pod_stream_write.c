@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  pod_stream_write.c
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <assert.h>
 #include <errno.h>
 #include <unistd.h>

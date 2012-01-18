@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  pod_scan_start.c
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include "pod_boolean.h"
 #include "pod_log.h"
 #include "pod_scan.h"

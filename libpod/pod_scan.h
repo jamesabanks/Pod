@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_SCAN_H
 #define INCLUDE_POD_SCAN_H
 
+/******************************************************************** 
+ *  pod_scan.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include "pod_char.h"
 #include "pod_stream.h"
 #include "pod_string.h"

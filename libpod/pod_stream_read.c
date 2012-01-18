@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  pod_stream_read.c
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <assert.h>
 #include <unistd.h>
 #include "pod_boolean.h"

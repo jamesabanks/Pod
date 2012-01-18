@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_OBJECT_H
 #define INCLUDE_POD_OBJECT_H
 
+/******************************************************************** 
+ *  pod_object.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include "pod_node.h"
 
 

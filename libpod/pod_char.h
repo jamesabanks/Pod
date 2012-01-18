@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_CHAR_H
 #define INCLUDE_POD_CHAR_H
 
+/******************************************************************** 
+ *  pod_char.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <stdint.h> /* for uint32 */
 #include <stddef.h> /* for size_t */
 

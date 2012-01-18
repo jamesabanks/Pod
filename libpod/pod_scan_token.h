@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_SCAN_TOKEN_H
 #define INCLUDE_POD_SCAN_TOKEN_H
 
+/******************************************************************** 
+ *  pod_scan_token.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 
 
 typedef enum pod_scan_token {

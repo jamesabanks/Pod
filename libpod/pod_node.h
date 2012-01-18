@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_NODE_H
 #define INCLUDE_POD_NODE_H
 
+/******************************************************************** 
+ *  pode_node.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <stddef.h>
 
 

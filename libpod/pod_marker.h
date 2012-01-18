@@ -1,6 +1,13 @@
 #ifndef INCLUDE_POD_MARKER_H
 #define INCLUDE POD_MARKER_H
 
+/******************************************************************** 
+ *  pod_marker.h
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include "pod_char.h"
 #include "pod_object.h"
 

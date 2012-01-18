@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  pod_scan_add_token.c
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <assert.h>
 #include "pod_scan.h"
 #include "pod_log.h"

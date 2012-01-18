@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  Makefile
+ *  Copyright (c) 2011-2012, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 CFLAGS = -O2 -Wall
 sources_c = pod_char.c pod_string.c pod_list.c pod_mapping.c pod_marker.c \
     pod_scan_add_char.c pod_scan_add_token.c                 \
