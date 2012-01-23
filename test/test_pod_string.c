@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include "../pod_string.h"
+#include "pod_string.h"
 
 
 

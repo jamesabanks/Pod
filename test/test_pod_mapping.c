@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "../pod_mapping.h"
-#include "../pod_string.h"
+#include "pod_mapping.h"
+#include "pod_string.h"
 
 
 

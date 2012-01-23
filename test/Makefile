@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -g
+CFLAGS = -g -I../libpod
 # LDFLAGS = -L.. -lpod -L../../ElectricFence-2.2.0 -lefence
 LDFLAGS = -L.. -lpod -lefence
 # LESS = /Users/james/Applications/MacVim.app/Contents/Resources/vim/runtime/macros/less.sh

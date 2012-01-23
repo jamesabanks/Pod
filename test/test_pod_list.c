@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "../pod_list.h"
-#include "../pod_string.h"
+#include "pod_list.h"
+#include "pod_string.h"
 
 
 
