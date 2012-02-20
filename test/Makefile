@@ -1,3 +1,10 @@
+##################################################################### 
+#   Makefile
+#   Copyright (c) 2011-2012, James A. Banks
+#   All rights reserved.
+#   See file LICENSE for details.
+##################################################################### 
+
 CC=gcc
 CFLAGS = -g -I../libpod
 # LDFLAGS = -L.. -lpod -L../../ElectricFence-2.2.0 -lefence
