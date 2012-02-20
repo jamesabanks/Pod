@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  test_pod_string.c
+ *  Copyright (c) 2011, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

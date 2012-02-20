@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  test_pod_object.c
+ *  Copyright (c) 2011, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <stdio.h>
 #include "pod_object.h"
 

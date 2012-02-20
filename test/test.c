@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  test.c
+ *  Copyright (c) 2011, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>

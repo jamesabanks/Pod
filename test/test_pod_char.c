@@ -1,5 +1,12 @@
-#include <stdio.h>
+/******************************************************************** 
+ *  test_pod_char.c
+ *  Copyright (c) 2011, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <stdlib.h>
+#include <stdio.h>
 #include "pod_char.h"
 
 

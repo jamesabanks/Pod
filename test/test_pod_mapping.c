@@ -1,3 +1,10 @@
+/******************************************************************** 
+ *  test_pod_mapping.c
+ *  Copyright (c) 2011, James A. Banks
+ *  All rights reserved.
+ *  See file LICENSE for details.
+ ********************************************************************/
+
 #include <stdio.h>
 #include "pod_mapping.h"
 #include "pod_string.h"
